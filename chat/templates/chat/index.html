@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LM Studio Web UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: #16213e;
+            padding: 16px 24px;
+            border-bottom: 1px solid #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            color: #e94560;
+        }
+        .status {
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: #22c55e;
+            color: #fff;
+        }
+        .status.error {
+            background: #ef4444;
+        }
+        .chat-container {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: #e94560;
+            border-bottom-right-radius: 4px;
+        }
+        .message.assistant {
+            align-self: flex-start;
+            background: #16213e;
+            border-bottom-left-radius: 4px;
+        }
+        .message.system {
+            align-self: center;
+            background: #4a4a6a;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        .input-area {
+            background: #16213e;
+            padding: 24px;
+            border-top: 1px solid #0f3460;
+        }
+        .input-form {
+            display: flex;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .model-select {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+            background: #1a1a2e;
+            color: #eee;
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+            background: #1a1a2e;
+            color: #eee;
+            font-size: 1rem;
+            resize: none;
+            min-height: 48px;
+            max-height: 200px;
+        }
+        .message-input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+        .send-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            background: #e94560;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .send-btn:hover {
+            background: #d6344d;
+        }
+        .send-btn:disabled {
+            background: #4a4a6a;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #0f3460;
+            color: #e94560;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+        .loading.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LM Studio Web UI</h1>
+        <div id="status" class="status">Загрузка...</div>
+    </div>
+    <div class="chat-container">
+        <div id="chat-messages" class="chat-messages"></div>
+        <div class="loading" id="loading">Модель думает...</div>
+    </div>
+    <div class="input-area">
+        <form id="chat-form" class="input-form">
+            <select id="model-select" class="model-select">
+                <option value="">Выберите модель...</option>
+            </select>
+            <textarea id="message-input" class="message-input" placeholder="Сообщение..." rows="1"></textarea>
+            <button type="submit" id="send-btn" class="send-btn">Отправить</button>
+        </form>
+        <div class="loading" id="loading"></div>
+    </div>
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const modelSelect = document.getElementById('model-select');
+        const sendBtn = document.getElementById('send-btn');
+        const loading = document.getElementById('loading');
+        const statusEl = document.getElementById('status');
+
+        let currentModel = '';
+        let conversationHistory = [];
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/models/');
+                const data = await response.json();
+                
+                if (data.models && data.models.length > 0) {
+                    modelSelect.innerHTML = '';
+                    data.models.forEach((model, index) => {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        if (index === 0) {
+                            option.selected = true;
+                            currentModel = model;
+                        }
+                        modelSelect.appendChild(option);
+                    });
+                    statusEl.textContent = 'LM Studio подключен';
+                    statusEl.classList.remove('error');
+                } else {
+                    statusEl.textContent = 'Нет доступных моделей';
+                    statusEl.classList.add('error');
+                }
+            } catch (error) {
+                statusEl.textContent = 'Ошибка подключения';
+                statusEl.classList.add('error');
+            }
+        }
+
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.textContent = content;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content || !currentModel) return;
+
+            addMessage('user', content);
+            conversationHistory.push({ role: 'user', content: content });
+            messageInput.value = '';
+            messageInput.style.height = '48px';
+            sendBtn.disabled = true;
+            loading.classList.add('visible');
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: currentModel,
+                        messages: conversationHistory,
+                        temperature: 0.7
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    addMessage('system', `Ошибка: ${data.error}`);
+                } else {
+                    addMessage('assistant', data.content);
+                    conversationHistory.push({ role: 'assistant', content: data.content });
+                }
+            } catch (error) {
+                addMessage('system', `Ошибка сети: ${error.message}`);
+            } finally {
+                sendBtn.disabled = false;
+                loading.classList.remove('visible');
+                messageInput.focus();
+            }
+        }
+
+        messageInput.addEventListener('input', function() {
+            this.style.height = '48px';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            sendMessage();
+        });
+
+        modelSelect.addEventListener('change', (e) => {
+            currentModel = e.target.value;
+            conversationHistory = [];
+            chatMessages.innerHTML = '';
+        });
+
+        checkStatus();
+    </script>
+</body>
+</html>
