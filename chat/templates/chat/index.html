@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LM Studio Web UI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <style>
         * {
             margin: 0;
@@ -98,6 +99,39 @@
             background: #f0f0f0;
             font-size: 0.85rem;
             opacity: 0.7;
+        }
+        .message.assistant code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+        .message.assistant pre {
+            background: #3d3d3d;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        .message.assistant pre code {
+            background: transparent;
+            padding: 0;
+            color: #eee;
+        }
+        .message.assistant h1, .message.assistant h2, .message.assistant h3 {
+            margin: 12px 0 8px 0;
+            color: #333;
+        }
+        .message.assistant strong {
+            color: #333;
+        }
+        .message.assistant em {
+            color: #666;
+        }
+        .message.assistant li {
+            margin: 4px 0;
+            list-style-type: disc;
         }
         .input-area {
             background: #e8e8e8;
@@ -421,7 +455,22 @@
         function addMessage(role, content) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
-            messageDiv.textContent = content;
+            
+            if (role === 'assistant') {
+                const markdownContent = content.replace(/`{3}([\s\S]*?)`{3}/g, '<pre><code>$1</code></pre>')
+                    .replace(/`([^`]+)`/g, '<code>$1</code>')
+                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                    .replace(/^#\s(.+)/gm, '<h1>$1</h1>')
+                    .replace(/^##\s(.+)/gm, '<h2>$1</h2>')
+                    .replace(/^###\s(.+)/gm, '<h3>$1</h3>')
+                    .replace(/^\-\s(.+)/gm, '<li>$1</li>')
+                    .replace(/\n/g, '<br>');
+                messageDiv.innerHTML = markdownContent;
+            } else {
+                messageDiv.textContent = content;
+            }
+            
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
