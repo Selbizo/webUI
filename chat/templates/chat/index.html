@@ -407,22 +407,21 @@
             }
             
             try {
-                const response = await fetch(`/api/chat/`, {
+                const response = await fetch(`/api/sessions/load/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        model: currentModel,
                         session_id: sessionId
                     })
                 });
                 
                 const data = await response.json();
                 
-                if (data.content || data.messages) {
+                if (data.messages) {
                     currentSessionId = sessionId;
-                    conversationHistory = data.messages || [];
+                    conversationHistory = data.messages;
                     chatMessages.innerHTML = '';
                     conversationHistory.forEach(msg => {
                         addMessage(msg.role, msg.content);
