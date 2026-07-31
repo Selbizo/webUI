@@ -137,6 +137,7 @@
             background: #e8e8e8;
             padding: 24px;
             border-top: 1px solid #cccccc;
+            flex-shrink: 0;
         }
         .input-form {
             display: flex;
@@ -248,16 +249,329 @@
         .delete-session-btn:hover {
             background: #dc2626;
         }
+        .file-panel {
+            width: 220px;
+            background: #e8e8e8;
+            border-right: 1px solid #cccccc;
+            padding: 16px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .file-panel.visible {
+            display: block;
+        }
+        .file-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .file-panel-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .file-tree {
+            font-size: 0.82rem;
+        }
+        .file-tree-item {
+            user-select: none;
+        }
+        .file-tree-row {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            gap: 4px;
+        }
+        .file-tree-row:hover {
+            background: #f5f5f5;
+        }
+        .file-tree-row.open {
+            background: #f0f0f0;
+        }
+        .file-tree-row.file {
+            padding-left: 20px;
+        }
+        .file-tree-row.file:hover {
+            color: #6b6b6b;
+        }
+        .file-tree-row.active {
+            background: #d4d4d4;
+            color: #333;
+        }
+        .file-tree-arrow {
+            width: 16px;
+            text-align: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+            color: #999;
+        }
+        .file-tree-arrow.hidden {
+            visibility: hidden;
+        }
+        .file-tree-icon {
+            margin-right: 4px;
+            font-size: 0.85rem;
+        }
+        .file-tree-children {
+            display: none;
+        }
+        .file-tree-children.open {
+            display: block;
+        }
         .content-wrapper {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
-        .main-content {
+        .content-main {
+            display: flex;
             flex: 1;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .file-viewer {
+            display: none;
+            flex-direction: column;
+            width: 400px;
+            border-right: 1px solid #cccccc;
+            background: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .file-viewer.visible {
+            display: flex;
+        }
+        .file-viewer-header {
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .file-viewer-close {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #999;
+            padding: 0 4px;
+        }
+        .file-viewer-close:hover {
+            color: #333;
+        }
+        .file-viewer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            background: #fafafa;
+        }
+        .file-viewer-line {
+            display: flex;
+            white-space: pre;
+        }
+        .file-viewer-line:hover {
+            background: #f0f0f0;
+        }
+        .line-number {
+            display: inline-block;
+            width: 40px;
+            text-align: right;
+            padding-right: 12px;
+            color: #999;
+            user-select: none;
+            border-right: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .line-content {
+            padding-left: 12px;
+            color: #333;
+        }
+        .file-viewer-content code {
+            background: #3d3d3d;
+            color: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85em;
+        }
+        .file-viewer-content pre {
+            background: #3d3d3d;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+            color: #eee;
+        }
+        .code-block {
             display: flex;
             flex-direction: column;
+            margin: 8px 0;
+            background: #3d3d3d;
+            border-radius: 8px;
             overflow: hidden;
+        }
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: #2d2d2d;
+            color: #aaa;
+            font-size: 0.75rem;
+        }
+        .code-block-copy {
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .code-block-copy:hover {
+            background: #444;
+        }
+        .code-block-content {
+            display: flex;
+            flex-direction: column;
+        }
+        .diff-viewer {
+            display: none;
+            flex-direction: column;
+            width: 450px;
+            border-right: 1px solid #cccccc;
+            background: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .diff-viewer.visible {
+            display: flex;
+        }
+        .diff-viewer-header {
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .diff-viewer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            background: #fafafa;
+        }
+        .diff-line {
+            display: flex;
+            white-space: pre;
+            padding: 0 8px;
+        }
+        .diff-line:hover {
+            background: #f0f0f0;
+        }
+        .diff-line.added {
+            background: #e6ffec;
+        }
+        .diff-line.added .diff-number { background: #d4ffd4; }
+        .diff-line.removed {
+            background: #ffebe9;
+        }
+        .diff-line.removed .diff-number { background: #ffd4d4; }
+        .diff-line.hunk {
+            background: #f0f0f0;
+            color: #666;
+        }
+        .diff-line.header {
+            background: #f0f0f0;
+            color: #999;
+        }
+        .diff-number {
+            display: inline-block;
+            width: 35px;
+            text-align: right;
+            padding-right: 8px;
+            color: #999;
+            user-select: none;
+            border-right: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .diff-content {
+            padding-left: 8px;
+        }
+        .diff-content.added-text { color: #1a7f37; }
+        .diff-content.removed-text { color: #cf222e; }
+        .diff-actions {
+            padding: 8px 12px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            background: #f5f5f5;
+        }
+        .btn-apply {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: none;
+            background: #22c55e;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+        .btn-apply:hover {
+            background: #16a34a;
+        }
+        .btn-reject {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+        .btn-reject:hover {
+            background: #eee;
+        }
+        .code-block-header {
+            padding: 12px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            color: #eee;
+            white-space: pre;
+        }
+        .search-files {
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            background: #fff;
+            color: #333;
+            display: none;
+        }
+        .search-files.visible {
+            display: block;
         }
         .sidebar-toggle {
             padding: 8px 12px;
@@ -283,17 +597,51 @@
         </div>
     </div>
     <div class="content-wrapper">
+        <div class="file-panel" id="file-panel">
+            <div class="file-panel-header">
+                <span class="file-panel-title">Файлы</span>
+                <div>
+                    <button id="search-files-btn" class="sidebar-toggle" style="font-size:0.8rem;padding:2px 6px;" title="Поиск">🔍</button>
+                    <button id="toggle-file-panel" class="sidebar-toggle" style="font-size:0.8rem;padding:2px 6px;margin-left:2px;" title="Закрыть">✕</button>
+                </div>
+            </div>
+            <input type="text" class="search-files" id="search-files" placeholder="Поиск файлов...">
+            <div class="file-tree" id="file-tree"></div>
+        </div>
         <div class="sessions-panel" id="sessions-panel">
             <div class="sessions-title">Сессии</div>
             <button id="create-session-btn" class="create-session-btn">Новая сессия</button>
             <div id="sessions-list"></div>
         </div>
-        <div class="main-content">
+        <div class="diff-viewer" id="diff-viewer">
+            <div class="diff-viewer-header">
+                <span id="diff-viewer-name">—</span>
+                <button class="file-viewer-close" id="diff-viewer-close">×</button>
+            </div>
+            <div class="diff-viewer-content" id="diff-viewer-content"></div>
+            <div class="diff-actions">
+                <button class="btn-reject" id="diff-reject">Отклонить</button>
+                <button class="btn-apply" id="diff-apply">Применить</button>
+            </div>
+        </div>
+        <div class="file-viewer" id="file-viewer">
+            <div class="file-viewer-header">
+                <span id="file-viewer-name">—</span>
+                <div>
+                    <button class="file-viewer-close" id="file-viewer-add-context" title="Добавить в контекст" style="margin-right:4px;font-size:0.8rem;">📎</button>
+                    <button class="file-viewer-close" id="file-viewer-close">×</button>
+                </div>
+            </div>
+            <div class="file-viewer-content" id="file-viewer-content"></div>
+        </div>
+        <div class="content-main">
             <div class="chat-container">
                 <div id="chat-messages" class="chat-messages"></div>
                 <div class="loading" id="loading">Модель думает...</div>
             </div>
             <div class="input-area">
+                <div id="command-suggestion" style="display:none;max-width:900px;margin:0 auto 8px;padding:8px;background:#fff;border:1px solid #ccc;border-radius:8px;font-size:0.82rem;"></div>
+                <div id="terminal-output" style="display:none;max-width:900px;margin:0 auto 8px;padding:12px;background:#1e1e1e;color:#eee;border-radius:8px;font-family:'Courier New',monospace;font-size:0.82rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;"></div>
                 <form id="chat-form" class="input-form">
                     <select id="model-select" class="model-select">
                         <option value="">Выберите модель...</option>
@@ -318,6 +666,22 @@
         const sessionsPanel = document.getElementById('sessions-panel');
         const sessionsList = document.getElementById('sessions-list');
         const createSessionBtn = document.getElementById('create-session-btn');
+        const filePanel = document.getElementById('file-panel');
+        const fileTree = document.getElementById('file-tree');
+        const searchFilesBtn = document.getElementById('search-files-btn');
+        const searchFilesInput = document.getElementById('search-files');
+        const toggleFilePanelBtn = document.getElementById('toggle-file-panel');
+        const fileViewer = document.getElementById('file-viewer');
+        const fileViewerName = document.getElementById('file-viewer-name');
+        const fileViewerContent = document.getElementById('file-viewer-content');
+        const fileViewerClose = document.getElementById('file-viewer-close');
+        const commandSuggestion = document.getElementById('command-suggestion');
+        const diffViewer = document.getElementById('diff-viewer');
+        const diffViewerName = document.getElementById('diff-viewer-name');
+        const diffViewerContent = document.getElementById('diff-viewer-content');
+        const diffViewerClose = document.getElementById('diff-viewer-close');
+        const diffApplyBtn = document.getElementById('diff-apply');
+        const diffRejectBtn = document.getElementById('diff-reject');
 
         let currentModel = '';
         let conversationHistory = [];
@@ -361,6 +725,7 @@
                 }
                 
                 await loadSessions();
+                await loadFileTree();
             } catch (error) {
                 console.error('checkStatus error:', error);
                 statusEl.textContent = 'Ошибка подключения';
@@ -429,8 +794,272 @@
                     loadSessions();
                 }
             } catch (error) {
-                console.error('Ошибка загрузки сессии:', error);
+                console.error('Ошибка загрузки сsessии:', error);
             }
+        }
+
+        let currentFilePanelOpen = true;
+        let selectedFilesForContext = [];
+        let contextBadgeEl = null;
+
+        function getFileIcon(name) {
+            if (name.endsWith('.py')) return '🐍';
+            if (name.endsWith('.js') || name.endsWith('.jsx')) return '📜';
+            if (name.endsWith('.ts') || name.endsWith('.tsx')) return '📘';
+            if (name.endsWith('.html')) return '🌐';
+            if (name.endsWith('.css') || name.endsWith('.scss')) return '🎨';
+            if (name.endsWith('.json')) return '📋';
+            if (name.endsWith('.yaml') || name.endsWith('.yml')) return '⚙️';
+            if (name.endsWith('.md')) return '📝';
+            if (name.endsWith('.txt')) return '📄';
+            if (name.endsWith('.sql')) return '🗃️';
+            if (name.endsWith('.env')) return '🔒';
+            if (name.endsWith('.sh')) return '⚡';
+            if (name.endsWith('.rb')) return '💎';
+            if (name.endsWith('.go')) return '🔷';
+            if (name.endsWith('.rs')) return '🦀';
+            if (name.endsWith('.java')) return '☕';
+            if (name.endsWith('.c') || name.endsWith('.h')) return '🔧';
+            if (name.endsWith('.cpp') || name.endsWith('.cc')) return '🔧';
+            if (name.endsWith('.vue')) return '💚';
+            if (name.endsWith('.xml')) return '📰';
+            if (name.endsWith('.csv')) return '📊';
+            const ext = name.split('.').pop();
+            return '📄';
+        }
+
+        function renderFileTree(items, depth) {
+            if (depth === undefined) depth = 0;
+            let html = '';
+            for (const item of items) {
+                const indent = depth * 16;
+                const isDir = item.type === 'dir';
+                const hasChildren = isDir && item.children && item.children.length > 0;
+                const icon = isDir ? '📁' : getFileIcon(item.name);
+                html += '<div class="file-tree-item" data-path="' + item.path + '" data-type="' + item.type + '" style="padding-left:' + indent + 'px">';
+                html += '<div class="file-tree-row" data-type="' + item.type + '" onclick="toggleTreeNode(this)">';
+                html += '<span class="file-tree-arrow ' + (hasChildren ? '' : 'hidden') + '">' + (hasChildren ? '▼' : '') + '</span>';
+                html += '<span class="file-tree-icon">' + icon + '</span>';
+                html += '<span>' + item.name + '</span>';
+                html += '</div>';
+                if (isDir && hasChildren) {
+                    html += '<div class="file-tree-children">' + renderFileTree(item.children, depth + 1) + '</div>';
+                }
+                html += '</div>';
+            }
+            return html;
+        }
+
+        function toggleTreeNode(row) {
+            var item = row.closest('.file-tree-item');
+            var children = item.querySelector('.file-tree-children');
+            var arrow = row.querySelector('.file-tree-arrow');
+            
+            if (children) {
+                var isOpen = children.classList.contains('open');
+                children.classList.toggle('open');
+                row.classList.toggle('open');
+                arrow.textContent = isOpen ? '▶' : '▼';
+            } else {
+                var filePath = item.dataset.path;
+                openFileInViewer(filePath);
+                document.querySelectorAll('.file-tree-row.active').forEach(function(r) { r.classList.remove('active'); });
+                row.classList.add('active');
+            }
+        }
+
+        async function loadFileTree() {
+            try {
+                var response = await fetch('/api/files/list/');
+                var data = await response.json();
+                if (data.files) {
+                    fileTree.innerHTML = renderFileTree(data.files);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки файлов:', error);
+            }
+        }
+
+        async function openFileInViewer(filePath) {
+            try {
+                var response = await fetch('/api/files/read/?path=' + encodeURIComponent(filePath));
+                var data = await response.json();
+                if (data.error) {
+                    addMessage('system', 'Ошибка чтения файла: ' + data.error);
+                    return;
+                }
+                fileViewerName.textContent = filePath;
+                fileViewerContent.innerHTML = '';
+                
+                var lines = data.content.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                    var lineDiv = document.createElement('div');
+                    lineDiv.className = 'file-viewer-line';
+                    var spanNum = document.createElement('span');
+                    spanNum.className = 'line-number';
+                    spanNum.textContent = (i + 1);
+                    var spanContent = document.createElement('span');
+                    spanContent.className = 'line-content';
+                    spanContent.textContent = lines[i];
+                    lineDiv.appendChild(spanNum);
+                    lineDiv.appendChild(spanContent);
+                    fileViewerContent.appendChild(lineDiv);
+                }
+                
+                fileViewer.classList.add('visible');
+                fileViewerContent.scrollTop = 0;
+                currentFilePathInViewer = filePath;
+                currentFileContentInViewer = data.content;
+                updateContextBadge();
+            } catch (error) {
+                console.error('Ошибка чтения файла:', error);
+            }
+        }
+
+        var currentFilePathInViewer = null;
+        var currentFileContentInViewer = null;
+        var currentDiffData = null;
+        var currentDiffFilePath = null;
+
+        function addFileToContext() {
+            if (currentFilePathInViewer && !selectedFilesForContext.includes(currentFilePathInViewer)) {
+                selectedFilesForContext.push(currentFilePathInViewer);
+                updateContextBadge();
+                fileViewerName.textContent = currentFilePathInViewer + ' ✓';
+            }
+        }
+
+        function removeFileFromContext(filePath) {
+            selectedFilesForContext = selectedFilesForContext.filter(f => f !== filePath);
+            updateContextBadge();
+            if (currentFilePathInViewer === filePath) {
+                fileViewerName.textContent = filePath;
+            }
+        }
+
+        function updateContextBadge() {
+            if (selectedFilesForContext.length > 0) {
+                if (!contextBadgeEl) {
+                    contextBadgeEl = document.createElement('div');
+                    contextBadgeEl.style.cssText = 'padding:4px 12px;font-size:0.75rem;color:#666;max-width:900px;margin:0 auto 4px;';
+                    document.querySelector('.input-area').insertBefore(contextBadgeEl, document.querySelector('.input-form'));
+                }
+                var labels = selectedFilesForContext.map(function(f) { return f.split('/').pop(); }).join(', ');
+                contextBadgeEl.innerHTML = '📎 Контекст: ' + labels + ' <a href="#" onclick="clearContextFiles();return false;" style="color:#e74c3c;">очистить</a>';
+            } else if (contextBadgeEl) {
+                contextBadgeEl.remove();
+                contextBadgeEl = null;
+            }
+        }
+
+        async function showDiff(oldContent, newContent, filepath) {
+            currentDiffData = { old: oldContent, new: newContent };
+            currentDiffFilePath = filepath;
+            
+            diffViewerName.textContent = filepath + ' (diff)';
+            diffViewerContent.innerHTML = '';
+            
+            const response = await fetch('/api/diff/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    old_content: oldContent,
+                    new_content: newContent,
+                    filename: filepath
+                })
+            });
+            const data = await response.json();
+            if (data.colorized) {
+                for (const dl of data.colorized) {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'diff-line ' + dl.type;
+                    const numSpan = document.createElement('span');
+                    numSpan.className = 'diff-number';
+                    numSpan.textContent = dl.type === 'context' ? '' : (dl.type === 'added' ? '+' : (dl.type === 'removed' ? '-' : ''));
+                    const contentSpan = document.createElement('span');
+                    contentSpan.className = 'diff-content';
+                    if (dl.type === 'added') contentSpan.classList.add('added-text');
+                    if (dl.type === 'removed') contentSpan.classList.add('removed-text');
+                    contentSpan.textContent = dl.text;
+                    lineDiv.appendChild(numSpan);
+                    lineDiv.appendChild(contentSpan);
+                    diffViewerContent.appendChild(lineDiv);
+                }
+            }
+            
+            diffViewer.classList.add('visible');
+            diffViewerContent.scrollTop = 0;
+        }
+
+        async function applyCurrentDiff() {
+            if (!currentDiffData || !currentDiffFilePath) return;
+            try {
+                const response = await fetch('/api/patch/apply/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        path: currentDiffFilePath,
+                        content: currentDiffData.new
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    addMessage('system', '✅ Патч применён: ' + currentDiffFilePath);
+                    diffViewer.classList.remove('visible');
+                    currentDiffData = null;
+                    currentDiffFilePath = null;
+                    if (currentFilePathInViewer === currentDiffFilePath) {
+                        openFileInViewer(currentFilePathInViewer);
+                    }
+                }
+            } catch (error) {
+                addMessage('system', 'Ошибка применения патча: ' + error.message);
+            }
+        }
+
+        function clearContextFiles() {
+            selectedFilesForContext = [];
+            updateContextBadge();
+            if (currentFilePathInViewer) {
+                fileViewerName.textContent = currentFilePathInViewer;
+            }
+        }
+
+        function toggleFilePanel() {
+            currentFilePanelOpen = !currentFilePanelOpen;
+            filePanel.classList.toggle('visible', currentFilePanelOpen);
+        }
+
+        function toggleSearchFiles() {
+            searchFilesInput.classList.toggle('visible');
+            if (searchFilesInput.classList.contains('visible')) {
+                searchFilesInput.focus();
+            } else {
+                searchFilesInput.value = '';
+                filterFileTree('');
+            }
+        }
+
+        function filterFileTree(query) {
+            var rows = fileTree.querySelectorAll('.file-tree-row');
+            var q = query.toLowerCase();
+            rows.forEach(function(row) {
+                var name = row.textContent.toLowerCase();
+                var item = row.closest('.file-tree-item');
+                if (q && name.includes(q)) {
+                    item.style.display = '';
+                    var children = item.querySelector('.file-tree-children');
+                    if (children) {
+                        children.classList.add('open');
+                        row.classList.add('open');
+                        row.querySelector('.file-tree-arrow').textContent = '▼';
+                    }
+                } else if (q) {
+                    item.style.display = 'none';
+                } else {
+                    item.style.display = '';
+                }
+            });
         }
 
         async function createSession() {
@@ -474,21 +1103,56 @@
             }
         }
 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderMarkdown(content) {
+            let html = content;
+            const codeBlocks = [];
+            html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
+                const placeholder = `__CODEBLOCK_${codeBlocks.length}__`;
+                codeBlocks.push({ lang: lang || 'text', code: code.trim() });
+                return placeholder;
+            });
+            html = html.replace(/\n/g, '<br>');
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+            html = html.replace(/^###\s(.+)/gm, '<h3>$1</h3>');
+            html = html.replace(/^##\s(.+)/gm, '<h2>$1</h2>');
+            html = html.replace(/^#\s(.+)/gm, '<h1>$1</h1>');
+            html = html.replace(/^\-\s(.+)/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/gs, function(match) {
+                return '<ul>' + match + '</ul>';
+            });
+            for (let i = 0; i < codeBlocks.length; i++) {
+                const block = codeBlocks[i];
+                const codeHtml = escapeHtml(block.code);
+                html = html.replace(`__CODEBLOCK_${i}__`,
+                    '<div class="code-block">' +
+                    '<div class="code-block-header"><span>' + (block.lang === 'text' ? '' : block.lang) + '</span>' +
+                    '<button class="code-block-copy" onclick="copyCode(this)">Копировать</button></div>' +
+                    '<div class="code-block-content">' + codeHtml + '</div></div>');
+            }
+            return html;
+        }
+
+        async function copyCode(btn) {
+            const code = btn.closest('.code-block').querySelector('.code-block-content').textContent;
+            await navigator.clipboard.writeText(code);
+            btn.textContent = 'Скопировано!';
+            setTimeout(() => btn.textContent = 'Копировать', 2000);
+        }
+
         function addMessage(role, content) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
             
             if (role === 'assistant') {
-                const markdownContent = content.replace(/`{3}([\s\S]*?)`{3}/g, '<pre><code>$1</code></pre>')
-                    .replace(/`([^`]+)`/g, '<code>$1</code>')
-                    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                    .replace(/^#\s(.+)/gm, '<h1>$1</h1>')
-                    .replace(/^##\s(.+)/gm, '<h2>$1</h2>')
-                    .replace(/^###\s(.+)/gm, '<h3>$1</h3>')
-                    .replace(/^\-\s(.+)/gm, '<li>$1</li>')
-                    .replace(/\n/g, '<br>');
-                messageDiv.innerHTML = markdownContent;
+                messageDiv.innerHTML = renderMarkdown(content);
             } else {
                 messageDiv.textContent = content;
             }
@@ -501,6 +1165,11 @@
             const content = messageInput.value.trim();
             if (!content || !currentModel) return;
 
+            if (content.startsWith('/')) {
+                await handleSlashCommand(content);
+                return;
+            }
+
             addMessage('user', content);
             conversationHistory.push({ role: 'user', content: content });
             messageInput.value = '';
@@ -509,14 +1178,29 @@
             loading.classList.add('visible');
 
             try {
-                const body = {
+                var body = {
                     model: currentModel,
                     messages: conversationHistory,
-                    temperature: 0.7
+                    temperature: 0.7,
+                    stream: true
                 };
                 
                 if (currentSessionId) {
                     body.session_id = currentSessionId;
+                }
+                
+                if (selectedFilesForContext.length > 0) {
+                    var contextFiles = [];
+                    for (var f of selectedFilesForContext) {
+                        var resp = await fetch('/api/files/read/?path=' + encodeURIComponent(f));
+                        var fileData = await resp.json();
+                        if (!fileData.error) {
+                            contextFiles.push({ path: f, content: fileData.content });
+                        }
+                    }
+                    if (contextFiles.length > 0) {
+                        body.context_files = contextFiles;
+                    }
                 }
                 
                 const response = await fetch('/api/chat/', {
@@ -527,28 +1211,219 @@
                     body: JSON.stringify(body)
                 });
 
-                const data = await response.json();
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let assistantContent = '';
+                let sessionReturned = false;
+                addMessage('assistant', '');
+                const assistantMsgEl = chatMessages.querySelector('.message.assistant:last-of-type');
                 
-                if (data.error) {
-                    addMessage('system', `Ошибка: ${data.error}`);
-                } else {
-                    addMessage('assistant', data.content);
-                    conversationHistory.push({ role: 'assistant', content: data.content });
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
                     
-                    if (data.session_id && !currentSessionId) {
-                        currentSessionId = data.session_id;
+                    const text = decoder.decode(value, { stream: true });
+                    const lines = text.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const jsonStr = line.slice(6);
+                            if (jsonStr === '[DONE]') continue;
+                            try {
+                                const chunk = JSON.parse(jsonStr);
+                                if (chunk.content) {
+                                    assistantContent += chunk.content;
+                                    if (assistantMsgEl) {
+                                        assistantMsgEl.innerHTML = renderMarkdown(assistantContent);
+                                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    }
+                                }
+                                if (chunk.session_id) {
+                                    sessionReturned = true;
+                                }
+                                if (chunk.error) {
+                                    addMessage('system', 'Ошибка: ' + chunk.error);
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+                
+                if (assistantContent) {
+                    conversationHistory.push({ role: 'assistant', content: assistantContent });
+                    
+                    if (sessionReturned && !currentSessionId) {
+                        currentSessionId = body.session_id;
                         await loadSessions();
-                    } else if (currentSessionId) {
+                    } else if (sessionReturned && currentSessionId) {
                         await saveCurrentSession();
                     }
                 }
             } catch (error) {
-                addMessage('system', `Ошибка сети: ${error.message}`);
+                addMessage('system', 'Ошибка сети: ' + error.message);
             } finally {
                 sendBtn.disabled = false;
                 loading.classList.remove('visible');
                 messageInput.focus();
             }
+        }
+
+        async function handleSlashCommand(text) {
+            const parts = text.split(' ', 2);
+            const cmd = parts[0].toLowerCase();
+            const arg = parts[1] || '';
+            
+            if (cmd === '/fix') {
+                const msg = currentSelectedFilePath
+                    ? `Исправь ошибки в файле: ${currentSelectedFilePath}\n\n${arg}`
+                    : `Исправь ошибки в выделенном коде:\n\n${arg || 'Нужно проанализировать и исправить ошибки в текущем проекте.'}`;
+                messageInput.value = msg;
+                sendMessage();
+            } else if (cmd === '/explain') {
+                const msg = currentSelectedFilePath
+                    ? `Объясни подробно что делает файл: ${currentSelectedFilePath}\n\n${arg}`
+                    : `Объясни что делает этот код:\n\n${arg}`;
+                messageInput.value = msg;
+                sendMessage();
+            } else if (cmd === '/test') {
+                const msg = currentSelectedFilePath
+                    ? `Напиши unit-тесты для файла: ${currentSelectedFilePath}\n\n${arg}`
+                    : `Напиши тесты для этого кода:\n\n${arg}`;
+                messageInput.value = msg;
+                sendMessage();
+            } else if (cmd === '/docs') {
+                const msg = currentSelectedFilePath
+                    ? `Добавь docstring и документацию для файла: ${currentSelectedFilePath}\n\n${arg}`
+                    : `Добавь документацию к этому коду:\n\n${arg}`;
+                messageInput.value = msg;
+                sendMessage();
+            } else if (cmd === '/refactor') {
+                const msg = currentSelectedFilePath
+                    ? `Рефактори файл: ${currentSelectedFilePath} — улучши читаемость и производительность\n\n${arg}`
+                    : `Рефактори этот код:\n\n${arg}`;
+                messageInput.value = msg;
+                sendMessage();
+            } else if (cmd === '/inspector') {
+                messageInput.value = text;
+                sendMessage();
+            } else if (cmd === '/run') {
+                runTerminalCommand(arg);
+            } else if (cmd === '/docx') {
+                downloadDocx(arg);
+            } else if (cmd === '/apply') {
+                applySelectedFile(arg);
+            } else {
+                messageInput.value = text;
+                sendMessage();
+            }
+        }
+
+        async function applySelectedFile(arg) {
+            const filepath = arg || currentSelectedFilePath;
+            if (!filepath) {
+                addMessage('system', 'Укажите файл: /apply path/to/file.py');
+                return;
+            }
+            addMessage('system', 'Генерация изменений для ' + filepath + '...');
+            try {
+                const response = await fetch('/api/files/read/?path=' + encodeURIComponent(filepath));
+                const data = await response.json();
+                if (data.error) {
+                    addMessage('system', 'Файл не найден: ' + filepath);
+                    return;
+                }
+                const oldContent = data.content;
+                conversationHistory.push({
+                    role: 'user',
+                    content: 'Пожалуйста, предоставь изменённую версию файла ' + filepath + '. Верни только новый содержимое файла в блоке кода. Не включай никаких объяснений.'
+                });
+                
+                const resp = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        model: currentModel,
+                        messages: conversationHistory,
+                        temperature: 0.2,
+                        stream: false,
+                        session_id: currentSessionId
+                    })
+                });
+                const chatData = await resp.json();
+                if (chatData.error) {
+                    addMessage('system', 'Ошибка: ' + chatData.error);
+                    return;
+                }
+                
+                conversationHistory.push({ role: 'assistant', content: chatData.content });
+                
+                // Extract code block
+                const codeMatch = chatData.content.match(/```(?:\w+)?\n([\s\S]*?)```/);
+                if (codeMatch) {
+                    const newContent = codeMatch[1];
+                    addMessage('system', '✅ Изменения готовы для ' + filepath + '. Проверьте diff ниже.');
+                    await showDiff(oldContent, newContent, filepath);
+                } else {
+                    addMessage('system', 'Не удалось извлечь код из ответа. Ответ был: ' + chatData.content.substring(0, 200));
+                }
+            } catch (error) {
+                addMessage('system', 'Ошибка: ' + error.message);
+            }
+        }
+
+        async function runTerminalCommand(command) {
+            const outputEl = document.getElementById('terminal-output');
+            outputEl.style.display = 'block';
+            outputEl.textContent = '$ ' + command + '\n\n';
+            sendBtn.disabled = true;
+            try {
+                const response = await fetch('/api/command/run/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ command: command })
+                });
+                const data = await response.json();
+                if (data.output) outputEl.textContent += data.output;
+                if (data.error) outputEl.textContent += (data.output ? '\n' : '') + '❌ ' + data.error;
+                if (data.returncode !== undefined && data.returncode !== 0) {
+                    outputEl.textContent += '\n\nProcess exited with code ' + data.returncode;
+                }
+            } catch (error) {
+                outputEl.textContent += '❌ Network error: ' + error.message;
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        async function downloadDocx(arg) {
+            const filename = arg || 'report.docx';
+            const historyStr = conversationHistory.map(m => m.role + ': ' + m.content).join('\n\n');
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/docx/generate/';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'csrfmiddlewaretoken';
+            input.value = '';
+            const contentInput = document.createElement('input');
+            contentInput.type = 'hidden';
+            contentInput.name = 'content';
+            contentInput.value = historyStr || 'No content';
+            const titleInput = document.createElement('input');
+            titleInput.type = 'hidden';
+            titleInput.name = 'title';
+            titleInput.value = 'Chat Report';
+            const nameInput = document.createElement('input');
+            nameInput.type = 'hidden';
+            nameInput.name = 'filename';
+            nameInput.value = filename;
+            form.appendChild(input);
+            form.appendChild(contentInput);
+            form.appendChild(titleInput);
+            form.appendChild(nameInput);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
 
         messageInput.addEventListener('input', function() {
@@ -573,6 +1448,15 @@
         });
 
         createSessionBtn.addEventListener('click', createSession);
+        
+        toggleFilePanelBtn.addEventListener('click', toggleFilePanel);
+        searchFilesBtn.addEventListener('click', toggleSearchFiles);
+        fileViewerClose.addEventListener('click', () => fileViewer.classList.remove('visible'));
+        document.getElementById('file-viewer-add-context').addEventListener('click', addFileToContext);
+        diffViewerClose.addEventListener('click', () => diffViewer.classList.remove('visible'));
+        diffApplyBtn.addEventListener('click', applyCurrentDiff);
+        diffRejectBtn.addEventListener('click', () => diffViewer.classList.remove('visible'));
+        searchFilesInput.addEventListener('input', (e) => filterFileTree(e.target.value));
         
         logoutBtn.addEventListener('click', async () => {
             if (currentSessionId) {

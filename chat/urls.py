@@ -13,4 +13,13 @@ urlpatterns = [
     path('api/sessions/save/', views.save_session, name='save_session'),
     path('api/sessions/delete/', views.delete_session, name='delete_session'),
     path('api/sessions/load/', views.load_session_messages, name='load_session_messages'),
+    path('api/files/list/', views.list_files_api, name='list_files_api'),
+    path('api/files/read/', views.read_file_api, name='read_file_api'),
+    path('api/files/search/', views.search_files_api, name='search_files_api'),
+    path('api/command/run/', views.run_command_api, name='run_command_api'),
+    path('api/files/create/', views.create_file_api, name='create_file_api'),
+    path('api/files/update/', views.update_file_api, name='update_file_api'),
+    path('api/docx/generate/', views.generate_docx_api, name='generate_docx_api'),
+    path('api/patch/apply/', views.apply_patch_api, name='apply_patch_api'),
+    path('api/diff/', views.diff_api, name='diff_api'),
 ]

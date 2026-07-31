@@ -1,7 +1,13 @@
 import os
+import re
 import json
 import uuid
+import mimetypes
+from pathlib import Path
 from openai import OpenAI
+from django.conf import settings as django_settings
+
+BASE_DIR = Path(django_settings.BASE_DIR)
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -85,6 +91,8 @@ def chat_api(request):
             return JsonResponse({'error': 'No model specified and no models available'}, status=500)
         
         session_id = data.get('session_id')
+        context_files = data.get('context_files', [])
+        
         if session_id and request.user.is_authenticated:
             from .models import ChatSession
             try:
@@ -93,6 +101,14 @@ def chat_api(request):
                 messages = stored_messages + messages
             except ChatSession.DoesNotExist:
                 pass
+        
+        if context_files:
+            context_text = '\n\n'.join(
+                f'=== Файл: {cf["path"]} ===\n{cf["content"]}'
+                for cf in context_files
+            )
+            system_msg = f'Вот контекстные файлы для анализа:\n\n{context_text}\n\nПроанализируй эти файлы в контексте диалога.'
+            messages = [{'role': 'system', 'content': system_msg}] + messages
         
         response = client.chat.completions.create(
             model=model,
@@ -104,21 +120,44 @@ def chat_api(request):
         
         if data.get('stream', False):
             from django.http import StreamingHttpResponse
-            def event_stream():
-                for chunk in response:
-                    if chunk.choices[0].delta.content:
-                        yield f"data: {json.dumps({'content': chunk.choices[0].delta.content})}\n\n"
-                if session_id:
-                    yield f"data: {json.dumps({'session_id': session_id})}\n\n"
-            response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
-            if session_id and request.user.is_authenticated:
+            import threading
+            import queue
+
+            result_queue = queue.Queue()
+            
+            def read_stream():
                 try:
-                    session = ChatSession.objects.get(session_id=session_id, user=request.user)
-                    session.messages = messages + [{'role': 'assistant', 'content': '...'}]
-                    session.save()
-                except ChatSession.DoesNotExist:
-                    pass
-            return response
+                    full_content = ''
+                    for chunk in response:
+                        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                            content_chunk = chunk.choices[0].delta.content
+                            full_content += content_chunk
+                            result_queue.put(f"data: {json.dumps({'content': content_chunk})}\n\n")
+                    result_queue.put('__DONE__')
+                    if session_id:
+                        result_queue.put(f"data: {json.dumps({'session_id': session_id})}\n\n")
+                        try:
+                            session = ChatSession.objects.get(session_id=session_id, user=request.user)
+                            session.messages = messages + [{'role': 'assistant', 'content': full_content}]
+                            session.save()
+                        except ChatSession.DoesNotExist:
+                            pass
+                except Exception as e:
+                    result_queue.put(f"data: {json.dumps({'error': str(e)})}\n\n")
+                    result_queue.put('__DONE__')
+
+            thread = threading.Thread(target=read_stream)
+            thread.daemon = True
+            thread.start()
+            
+            def event_stream():
+                while True:
+                    item = result_queue.get()
+                    if item == '__DONE__':
+                        break
+                    yield item
+            
+            return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
         else:
             result = {
                 'content': response.choices[0].message.content,
@@ -200,6 +239,136 @@ def delete_session(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+import os
+import re
+import mimetypes
+
+PROJECT_ROOT = str(BASE_DIR)
+SKIP_DIRS = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', 'env', 'build', 'dist', '.cache', '.mypy_cache'}
+SKIP_EXTS = {'.pyc', '.pyo', '.o', '.so', '.dll', '.dylib', '.a', '.lib', '.exe', '.bin', '.db', '.sqlite', '.sqlite3', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.svg', '.mp3', '.mp4', '.avi', '.wav', '.zip', '.tar', '.gz', '.7z', '.rar'}
+
+def is_binary_file(filepath):
+    try:
+        with open(filepath, 'rb') as f:
+            chunk = f.read(8192)
+            if b'\x00' in chunk:
+                return True
+        return False
+    except Exception:
+        return True
+
+def list_dir(path, base=None):
+    if base is None:
+        base = PROJECT_ROOT
+    result = []
+    try:
+        entries = sorted(os.listdir(path))
+    except PermissionError:
+        return result
+    except FileNotFoundError:
+        return result
+    for entry in entries:
+        full_path = os.path.join(path, entry)
+        rel_path = os.path.relpath(full_path, base)
+        if os.path.isdir(full_path):
+            if entry in SKIP_DIRS or entry.startswith('.'):
+                continue
+            sub_result = list_dir(full_path, base)
+            if sub_result:
+                result.append({'name': entry, 'type': 'dir', 'path': rel_path, 'children': sub_result})
+            else:
+                result.append({'name': entry, 'type': 'dir', 'path': rel_path, 'children': []})
+        else:
+            _, ext = os.path.splitext(entry)
+            if ext.lower() in SKIP_EXTS:
+                continue
+            if is_binary_file(full_path):
+                continue
+            result.append({'name': entry, 'type': 'file', 'path': rel_path})
+    return result
+
+
+@csrf_exempt
+@require_http_methods(['GET'])
+def list_files_api(request):
+    try:
+        dir_path = request.GET.get('dir', '')
+        if dir_path:
+            full_path = os.path.join(PROJECT_ROOT, dir_path)
+        else:
+            full_path = PROJECT_ROOT
+        files = list_dir(full_path)
+        return JsonResponse({'files': files})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['GET'])
+def read_file_api(request):
+    try:
+        file_path = request.GET.get('path', '')
+        if not file_path:
+            return JsonResponse({'error': 'No path specified'}, status=400)
+        full_path = os.path.join(PROJECT_ROOT, file_path)
+        if not os.path.isfile(full_path):
+            return JsonResponse({'error': 'File not found'}, status=404)
+        _, ext = os.path.splitext(file_path)
+        if is_binary_file(full_path):
+            return JsonResponse({'error': 'Binary file'}, status=400)
+        with open(full_path, 'r', encoding='utf-8', errors='replace') as f:
+            content = f.read()
+        lines = content.split('\n')
+        line_numbers = list(range(1, len(lines) + 1))
+        return JsonResponse({
+            'path': file_path,
+            'content': content,
+            'lines': line_numbers,
+            'total_lines': len(lines)
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['GET'])
+def search_files_api(request):
+    try:
+        query = request.GET.get('q', '').strip().lower()
+        if not query or len(query) < 2:
+            return JsonResponse({'results': []})
+        
+        results = []
+        for root, dirs, files in os.walk(PROJECT_ROOT):
+            dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith('.')]
+            for filename in files:
+                _, ext = os.path.splitext(filename)
+                if ext.lower() in SKIP_EXTS:
+                    continue
+                if is_binary_file(os.path.join(root, filename)):
+                    continue
+                rel_path = os.path.relpath(root, PROJECT_ROOT)
+                try:
+                    with open(os.path.join(root, filename), 'r', encoding='utf-8', errors='replace') as f:
+                        content = f.read()
+                    lines = content.split('\n')
+                    for i, line in enumerate(lines):
+                        if query in line.lower():
+                            results.append({
+                                'file': os.path.join(rel_path, filename) if rel_path != '.' else filename,
+                                'line_num': i + 1,
+                                'line': line.strip()[:200],
+                                'context': ''
+                            })
+                            if len(results) >= 100:
+                                return JsonResponse({'results': results})
+                except Exception:
+                    continue
+        return JsonResponse({'results': results[:100]})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 @csrf_exempt
 @require_http_methods(['POST'])
 def load_session_messages(request):
@@ -218,6 +387,169 @@ def load_session_messages(request):
         })
     except ChatSession.DoesNotExist:
         return JsonResponse({'error': 'Session not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def run_command_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        command = data.get('command', '').strip()
+        if not command:
+            return JsonResponse({'error': 'No command provided'}, status=400)
+
+        if ';' in command or '&&' in command or '||' in command or '`' in command:
+            return JsonResponse({'error': 'Dangerous characters not allowed'}, status=400)
+
+        allowed_prefixes = ['python3 ', 'python ', 'npm ', 'pip ', 'pip3 ', 'node ', 'npx ',
+                           'ls ', 'cat ', 'head ', 'tail ', 'grep ', 'find ', 'echo ',
+                           'rm ', 'mkdir ', 'cp ', 'mv ', 'git ', 'pytest ', 'django-admin',
+                           'chmod ', 'du ', 'df ', 'ps ', 'docker ', 'make ']
+
+        if not any(command.startswith(p) for p in allowed_prefixes):
+            return JsonResponse({'error': 'Command not allowed'}, status=403)
+
+        import subprocess
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(PROJECT_ROOT)
+        )
+        output = result.stdout[:50000]
+        if result.returncode != 0:
+            error = result.stderr[:10000]
+            return JsonResponse({
+                'output': output,
+                'error': error,
+                'returncode': result.returncode
+            })
+        return JsonResponse({
+            'output': output,
+            'returncode': 0
+        })
+    except subprocess.TimeoutExpired:
+        return JsonResponse({'error': 'Command timed out (60s)'}, status=408)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def create_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        file_path = data.get('path', '').strip()
+        content = data.get('content', '')
+
+        if not file_path:
+            return JsonResponse({'error': 'No path provided'}, status=400)
+
+        full_path = os.path.join(PROJECT_ROOT, file_path)
+        if not full_path.startswith(str(PROJECT_ROOT)):
+            return JsonResponse({'error': 'Invalid path'}, status=400)
+
+        dir_name = os.path.dirname(full_path)
+        if not os.path.isdir(dir_name):
+            os.makedirs(dir_name, exist_ok=True)
+
+        with open(full_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+        return JsonResponse({'success': True, 'path': file_path})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def update_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        file_path = data.get('path', '').strip()
+        content = data.get('content', '')
+
+        if not file_path:
+            return JsonResponse({'error': 'No path provided'}, status=400)
+
+        full_path = os.path.join(PROJECT_ROOT, file_path)
+        if not full_path.startswith(str(PROJECT_ROOT)):
+            return JsonResponse({'error': 'Invalid path'}, status=400)
+
+        if not os.path.isfile(full_path):
+            return JsonResponse({'error': 'File not found'}, status=404)
+
+        with open(full_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+        return JsonResponse({'success': True, 'path': file_path})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def generate_docx_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        title = data.get('title', 'Документ')
+        content = data.get('content', '')
+        filename = data.get('filename', 'document.docx')
+
+        from docx import Document
+        from docx.shared import Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+        doc = Document()
+        doc.add_heading(title, level=1)
+        doc.add_paragraph()
+
+        paragraphs = content.split('\n\n')
+        for para_text in paragraphs:
+            if not para_text.strip():
+                continue
+            if para_text.startswith('# '):
+                doc.add_heading(para_text[2:].strip(), level=2)
+            elif para_text.startswith('## '):
+                doc.add_heading(para_text[3:].strip(), level=3)
+            elif para_text.startswith('- '):
+                lines = para_text.split('\n')
+                for line in lines:
+                    if line.startswith('- '):
+                        doc.add_paragraph(line[2:].strip(), style='List Bullet')
+            else:
+                doc.add_paragraph(para_text.strip())
+
+        import io
+        from django.http import HttpResponse
+
+        buffer = io.BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+
+        safe_filename = ''.join(c for c in filename if c.isalnum() or c in ' _-').rstrip()
+        if not safe_filename.endswith('.docx'):
+            safe_filename += '.docx'
+
+        response = HttpResponse(buffer, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        response['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
+        return response
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -249,5 +581,98 @@ def save_session(request):
         session.save()
         
         return JsonResponse({'success': True, 'session_id': session_id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def apply_patch_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        file_path = data.get('path', '').strip()
+        new_content = data.get('content', '')
+
+        if not file_path:
+            return JsonResponse({'error': 'No path provided'}, status=400)
+
+        full_path = os.path.join(PROJECT_ROOT, file_path)
+        if not full_path.startswith(str(PROJECT_ROOT)):
+            return JsonResponse({'error': 'Invalid path'}, status=400)
+
+        dir_name = os.path.dirname(full_path)
+        if not os.path.isdir(dir_name):
+            os.makedirs(dir_name, exist_ok=True)
+
+        old_content = ''
+        if os.path.isfile(full_path):
+            with open(full_path, 'r', encoding='utf-8') as f:
+                old_content = f.read()
+
+        with open(full_path, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+
+        import difflib
+        old_lines = old_content.splitlines(keepends=True)
+        new_lines = new_content.splitlines(keepends=True)
+        diff = difflib.unified_diff(
+            old_lines, new_lines,
+            fromfile='a/' + file_path,
+            tofile='b/' + file_path
+        )
+        diff_text = ''.join(diff)
+
+        return JsonResponse({
+            'success': True,
+            'path': file_path,
+            'diff': diff_text
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def diff_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        old_content = data.get('old_content', '')
+        new_content = data.get('new_content', '')
+        filename = data.get('filename', 'file')
+
+        import difflib
+        old_lines = old_content.splitlines(keepends=True)
+        new_lines = new_content.splitlines(keepends=True)
+        diff = difflib.unified_diff(
+            old_lines, new_lines,
+            fromfile='a/' + filename,
+            tofile='b/' + filename
+        )
+        diff_text = ''.join(diff)
+
+        diff_lines = diff_text.splitlines()
+        colorized = []
+        for line in diff_lines:
+            if line.startswith('---') or line.startswith('+++'):
+                colorized.append({'type': 'header', 'text': line})
+            elif line.startswith('@@'):
+                colorized.append({'type': 'hunk', 'text': line})
+            elif line.startswith('+'):
+                colorized.append({'type': 'added', 'text': line[1:]})
+            elif line.startswith('-'):
+                colorized.append({'type': 'removed', 'text': line[1:]})
+            else:
+                colorized.append({'type': 'context', 'text': line})
+
+        return JsonResponse({
+            'diff': diff_text,
+            'colorized': colorized
+        })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
