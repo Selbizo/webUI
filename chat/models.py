@@ -6,12 +6,13 @@ from django.utils import timezone
 class ChatSession(models.Model):
     session_id = models.CharField(max_length=100, unique=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    messages = models.JSONField()
+    messages = models.JSONField(default=list)
+    title = models.CharField(max_length=200, blank=True, default='')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"Session {self.session_id} - {self.user or 'guest'}"
+        return self.title or f"Session {self.session_id}"
     
     class Meta:
         ordering = ['-updated_at']

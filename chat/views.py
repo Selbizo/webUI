@@ -157,6 +157,7 @@ def get_user_sessions(request):
     sessions_list = [
         {
             'session_id': session.session_id,
+            'title': session.title,
             'created_at': session.created_at.isoformat(),
             'updated_at': session.updated_at.isoformat()
         }
@@ -238,6 +239,13 @@ def save_session(request):
             user=request.user
         )
         session.messages = messages
+        if not session.title:
+            user_messages = [m for m in messages if m.get('role') == 'user']
+            if user_messages:
+                first_msg = user_messages[0].get('content', '')[:60]
+                session.title = first_msg.replace('\n', ' ')
+            else:
+                session.title = 'Новая сессия'
         session.save()
         
         return JsonResponse({'success': True, 'session_id': session_id})
