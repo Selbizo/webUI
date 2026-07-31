@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/sessions/', views.get_user_sessions, name='get_user_sessions'),
     path('api/sessions/create/', views.create_session, name='create_session'),
     path('api/sessions/save/', views.save_session, name='save_session'),
+    path('api/sessions/delete/', views.delete_session, name='delete_session'),
 ]

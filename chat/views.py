@@ -183,6 +183,24 @@ def create_session(request):
 
 @csrf_exempt
 @require_http_methods(['POST'])
+def delete_session(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+        
+        from .models import ChatSession
+        ChatSession.objects.filter(session_id=session_id, user=request.user).delete()
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
 def save_session(request):
     if not request.user.is_authenticated:
         return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)

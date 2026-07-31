@@ -245,6 +245,9 @@
         .create-session-btn:hover {
             background: #666666;
         }
+        .delete-session-btn:hover {
+            background: #dc2626;
+        }
         .content-wrapper {
             display: flex;
             flex: 1;
@@ -377,16 +380,32 @@
                     if (session.session_id === currentSessionId) {
                         sessionDiv.classList.add('active');
                     }
-                    sessionDiv.textContent = new Date(session.updated_at).toLocaleString('ru-RU');
+                    sessionDiv.innerHTML = `
+                        <span class="session-title">${new Date(session.updated_at).toLocaleString('ru-RU')}</span>
+                        <button class="delete-session-btn" style="margin-left: 8px; padding: 2px 6px; border: none; background: #ef4444; color: white; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">×</button>
+                    `;
+                    const deleteBtn = sessionDiv.querySelector('.delete-session-btn');
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteSession(session.session_id);
+                    });
                     sessionDiv.addEventListener('click', () => loadSession(session.session_id));
                     sessionsList.appendChild(sessionDiv);
                 });
+                
+                if (currentSessionId && !data.sessions.some(s => s.session_id === currentSessionId)) {
+                    currentSessionId = null;
+                }
             } catch (error) {
                 console.error('Ошибка загрузки сессий:', error);
             }
         }
 
         async function loadSession(sessionId) {
+            if (currentSessionId && currentSessionId !== sessionId) {
+                await saveCurrentSession();
+            }
+            
             try {
                 const response = await fetch(`/api/chat/`, {
                     method: 'POST',
@@ -401,7 +420,7 @@
                 
                 const data = await response.json();
                 
-                if (data.content) {
+                if (data.content || data.messages) {
                     currentSessionId = sessionId;
                     conversationHistory = data.messages || [];
                     chatMessages.innerHTML = '';
@@ -416,6 +435,10 @@
         }
 
         async function createSession() {
+            if (currentSessionId) {
+                await saveCurrentSession();
+            }
+            
             try {
                 const response = await fetch('/api/sessions/create/', {
                     method: 'POST'
@@ -540,6 +563,9 @@
         });
 
         modelSelect.addEventListener('change', (e) => {
+            if (currentSessionId) {
+                saveCurrentSession();
+            }
             currentModel = e.target.value;
             conversationHistory = [];
             chatMessages.innerHTML = '';
@@ -550,6 +576,9 @@
         createSessionBtn.addEventListener('click', createSession);
         
         logoutBtn.addEventListener('click', async () => {
+            if (currentSessionId) {
+                await saveCurrentSession();
+            }
             try {
                 await fetch('/logout/', {
                     method: 'POST'
