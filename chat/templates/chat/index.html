@@ -601,10 +601,12 @@
             <div class="file-panel-header">
                 <span class="file-panel-title">Файлы</span>
                 <div>
+                    <button id="set-workspace-btn" class="sidebar-toggle" style="font-size:0.8rem;padding:2px 6px;" title="Выбрать папку">📂</button>
                     <button id="search-files-btn" class="sidebar-toggle" style="font-size:0.8rem;padding:2px 6px;" title="Поиск">🔍</button>
                     <button id="toggle-file-panel" class="sidebar-toggle" style="font-size:0.8rem;padding:2px 6px;margin-left:2px;" title="Закрыть">✕</button>
                 </div>
             </div>
+            <div id="workspace-info" style="font-size:0.75rem;color:#666;padding:4px 0;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title=""></div>
             <input type="text" class="search-files" id="search-files" placeholder="Поиск файлов...">
             <div class="file-tree" id="file-tree"></div>
         </div>
@@ -745,16 +747,30 @@
                     if (session.session_id === currentSessionId) {
                         sessionDiv.classList.add('active');
                     }
-                    sessionDiv.innerHTML = `
-                        <span class="session-title">${session.title || new Date(session.updated_at).toLocaleString('ru-RU')}</span>
-                        <button class="delete-session-btn" style="margin-left: 8px; padding: 2px 6px; border: none; background: #ef4444; color: white; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">×</button>
-                    `;
-                    const deleteBtn = sessionDiv.querySelector('.delete-session-btn');
+                    
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'session-title';
+                    titleSpan.textContent = session.title || new Date(session.updated_at).toLocaleString('ru-RU');
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-session-btn';
+                    deleteBtn.textContent = '×';
+                    deleteBtn.style.cssText = 'margin-left: 8px; padding: 2px 6px; border: none; background: #ef4444; color: white; border-radius: 4px; cursor: pointer; font-size: 0.75rem;';
                     deleteBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
                         e.stopPropagation();
                         deleteSession(session.session_id);
                     });
-                    sessionDiv.addEventListener('click', () => loadSession(session.session_id));
+                    
+                    sessionDiv.appendChild(titleSpan);
+                    sessionDiv.appendChild(deleteBtn);
+                    
+                    sessionDiv.addEventListener('click', (e) => {
+                        if (e.target.closest('.delete-session-btn')) {
+                            return;
+                        }
+                        loadSession(session.session_id);
+                    });
                     sessionsList.appendChild(sessionDiv);
                 });
                 
@@ -794,7 +810,32 @@
                     loadSessions();
                 }
             } catch (error) {
-                console.error('Ошибка загрузки сsessии:', error);
+                console.error('Ошибка загрузки сessии:', error);
+            }
+        }
+
+        async function deleteSession(sessionId) {
+            try {
+                const response = await fetch('/api/sessions/delete/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId
+                    })
+                });
+                
+                if (response.ok) {
+                    if (currentSessionId === sessionId) {
+                        currentSessionId = null;
+                        conversationHistory = [];
+                        chatMessages.innerHTML = '';
+                    }
+                    loadSessions();
+                }
+            } catch (error) {
+                console.error('Ошибка удаления сессии:', error);
             }
         }
 

@@ -8,6 +8,35 @@ from openai import OpenAI
 from django.conf import settings as django_settings
 
 BASE_DIR = Path(django_settings.BASE_DIR)
+CONFIG_FILE = BASE_DIR / 'workspace_config.json'
+
+def get_workspace_path():
+    try:
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+                path = config.get('workspace_path', str(BASE_DIR))
+                if os.path.isdir(path):
+                    return path
+    except Exception:
+        pass
+    return str(BASE_DIR)
+
+def save_workspace_path(path):
+    path = os.path.abspath(path)
+    if not os.path.isdir(path):
+        return False, 'Директория не существует'
+    if not os.access(path, os.R_OK | os.W_OK):
+        return False, 'Нет прав доступа'
+    try:
+        config = {'workspace_path': path}
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(config, f)
+        return True, path
+    except Exception as e:
+        return False, str(e)
+
+PROJECT_ROOT = get_workspace_path()
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -299,6 +328,221 @@ def list_files_api(request):
             full_path = PROJECT_ROOT
         files = list_dir(full_path)
         return JsonResponse({'files': files})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def set_workspace_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+    try:
+        data = json.loads(request.body)
+        path = data.get('path', '').strip()
+        if not path:
+            return JsonResponse({'error': 'Путь не указан'}, status=400)
+        ok, result = save_workspace_path(path)
+        if ok:
+            global PROJECT_ROOT
+            PROJECT_ROOT = result
+            return JsonResponse({'success': True, 'path': result})
+        return JsonResponse({'error': result}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['GET'])
+def get_workspace_api(request):
+    return JsonResponse({'path': PROJECT_ROOT})
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def upload_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
+        if not uploaded_files:
+            return JsonResponse({'error': 'No files uploaded'}, status=400)
+
+        uploaded_paths = []
+        for uploaded_file in uploaded_files:
+            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
+            dest_dir = os.path.dirname(dest_path)
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            with open(dest_path, 'wb+') as dest:
+                for chunk in uploaded_file.chunks():
+                    dest.write(chunk)
+            uploaded_paths.append(str(uploaded_file))
+
+        return JsonResponse({'success': True, 'files': uploaded_paths})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def upload_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
+        if not uploaded_files:
+            return JsonResponse({'error': 'No files uploaded'}, status=400)
+
+        uploaded_paths = []
+        for uploaded_file in uploaded_files:
+            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
+            dest_dir = os.path.dirname(dest_path)
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            with open(dest_path, 'wb+') as dest:
+                for chunk in uploaded_file.chunks():
+                    dest.write(chunk)
+            uploaded_paths.append(str(uploaded_file))
+
+        return JsonResponse({'success': True, 'files': uploaded_paths})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def upload_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
+        if not uploaded_files:
+            return JsonResponse({'error': 'No files uploaded'}, status=400)
+
+        uploaded_paths = []
+        for uploaded_file in uploaded_files:
+            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
+            dest_dir = os.path.dirname(dest_path)
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            with open(dest_path, 'wb+') as dest:
+                for chunk in uploaded_file.chunks():
+                    dest.write(chunk)
+            uploaded_paths.append(str(uploaded_file))
+
+        return JsonResponse({'success': True, 'files': uploaded_paths})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def upload_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
+        if not uploaded_files:
+            return JsonResponse({'error': 'No files uploaded'}, status=400)
+
+        uploaded_paths = []
+        for uploaded_file in uploaded_files:
+            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
+            dest_dir = os.path.dirname(dest_path)
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            with open(dest_path, 'wb+') as dest:
+                for chunk in uploaded_file.chunks():
+                    dest.write(chunk)
+            uploaded_paths.append(str(uploaded_file))
+
+        return JsonResponse({'success': True, 'files': uploaded_paths})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def upload_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
+        if not uploaded_files:
+            return JsonResponse({'error': 'No files uploaded'}, status=400)
+
+        uploaded_paths = []
+        for uploaded_file in uploaded_files:
+            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
+            dest_dir = os.path.dirname(dest_path)
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            with open(dest_path, 'wb+') as dest:
+                for chunk in uploaded_file.chunks():
+                    dest.write(chunk)
+            uploaded_paths.append(str(uploaded_file))
+
+        return JsonResponse({'success': True, 'files': uploaded_paths})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def upload_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
+        if not uploaded_files:
+            return JsonResponse({'error': 'No files uploaded'}, status=400)
+
+        uploaded_paths = []
+        for uploaded_file in uploaded_files:
+            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
+            dest_dir = os.path.dirname(dest_path)
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            with open(dest_path, 'wb+') as dest:
+                for chunk in uploaded_file.chunks():
+                    dest.write(chunk)
+            uploaded_paths.append(str(uploaded_file))
+
+        return JsonResponse({'success': True, 'files': uploaded_paths})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def upload_file_api(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
+        if not uploaded_files:
+            return JsonResponse({'error': 'No files uploaded'}, status=400)
+
+        uploaded_paths = []
+        for uploaded_file in uploaded_files:
+            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
+            dest_dir = os.path.dirname(dest_path)
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
+            with open(dest_path, 'wb+') as dest:
+                for chunk in uploaded_file.chunks():
+                    dest.write(chunk)
+            uploaded_paths.append(str(uploaded_file))
+
+        return JsonResponse({'success': True, 'files': uploaded_paths})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
