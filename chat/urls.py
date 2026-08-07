@@ -22,4 +22,6 @@ urlpatterns = [
     path('api/docx/generate/', views.generate_docx_api, name='generate_docx_api'),
     path('api/patch/apply/', views.apply_patch_api, name='apply_patch_api'),
     path('api/diff/', views.diff_api, name='diff_api'),
+    path('api/workspace/set/', views.set_workspace_api, name='set_workspace_api'),
+    path('api/workspace/get/', views.get_workspace_api, name='get_workspace_api'),
 ]
