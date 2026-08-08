@@ -386,168 +386,6 @@ def upload_file_api(request):
 
 
 @csrf_exempt
-@require_http_methods(['POST'])
-def upload_file_api(request):
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
-
-    try:
-        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
-        if not uploaded_files:
-            return JsonResponse({'error': 'No files uploaded'}, status=400)
-
-        uploaded_paths = []
-        for uploaded_file in uploaded_files:
-            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
-            dest_dir = os.path.dirname(dest_path)
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
-            with open(dest_path, 'wb+') as dest:
-                for chunk in uploaded_file.chunks():
-                    dest.write(chunk)
-            uploaded_paths.append(str(uploaded_file))
-
-        return JsonResponse({'success': True, 'files': uploaded_paths})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(['POST'])
-def upload_file_api(request):
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
-
-    try:
-        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
-        if not uploaded_files:
-            return JsonResponse({'error': 'No files uploaded'}, status=400)
-
-        uploaded_paths = []
-        for uploaded_file in uploaded_files:
-            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
-            dest_dir = os.path.dirname(dest_path)
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
-            with open(dest_path, 'wb+') as dest:
-                for chunk in uploaded_file.chunks():
-                    dest.write(chunk)
-            uploaded_paths.append(str(uploaded_file))
-
-        return JsonResponse({'success': True, 'files': uploaded_paths})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(['POST'])
-def upload_file_api(request):
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
-
-    try:
-        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
-        if not uploaded_files:
-            return JsonResponse({'error': 'No files uploaded'}, status=400)
-
-        uploaded_paths = []
-        for uploaded_file in uploaded_files:
-            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
-            dest_dir = os.path.dirname(dest_path)
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
-            with open(dest_path, 'wb+') as dest:
-                for chunk in uploaded_file.chunks():
-                    dest.write(chunk)
-            uploaded_paths.append(str(uploaded_file))
-
-        return JsonResponse({'success': True, 'files': uploaded_paths})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(['POST'])
-def upload_file_api(request):
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
-
-    try:
-        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
-        if not uploaded_files:
-            return JsonResponse({'error': 'No files uploaded'}, status=400)
-
-        uploaded_paths = []
-        for uploaded_file in uploaded_files:
-            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
-            dest_dir = os.path.dirname(dest_path)
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
-            with open(dest_path, 'wb+') as dest:
-                for chunk in uploaded_file.chunks():
-                    dest.write(chunk)
-            uploaded_paths.append(str(uploaded_file))
-
-        return JsonResponse({'success': True, 'files': uploaded_paths})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(['POST'])
-def upload_file_api(request):
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
-
-    try:
-        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
-        if not uploaded_files:
-            return JsonResponse({'error': 'No files uploaded'}, status=400)
-
-        uploaded_paths = []
-        for uploaded_file in uploaded_files:
-            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
-            dest_dir = os.path.dirname(dest_path)
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
-            with open(dest_path, 'wb+') as dest:
-                for chunk in uploaded_file.chunks():
-                    dest.write(chunk)
-            uploaded_paths.append(str(uploaded_file))
-
-        return JsonResponse({'success': True, 'files': uploaded_paths})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(['POST'])
-def upload_file_api(request):
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
-
-    try:
-        uploaded_files = request.FILES.getlist('files[]') or request.FILES.getlist('files')
-        if not uploaded_files:
-            return JsonResponse({'error': 'No files uploaded'}, status=400)
-
-        uploaded_paths = []
-        for uploaded_file in uploaded_files:
-            dest_path = os.path.join(PROJECT_ROOT, str(uploaded_file))
-            dest_dir = os.path.dirname(dest_path)
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
-            with open(dest_path, 'wb+') as dest:
-                for chunk in uploaded_file.chunks():
-                    dest.write(chunk)
-            uploaded_paths.append(str(uploaded_file))
-
-        return JsonResponse({'success': True, 'files': uploaded_paths})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@csrf_exempt
 @require_http_methods(['GET'])
 def read_file_api(request):
     try:
@@ -609,6 +447,81 @@ def search_files_api(request):
                 except Exception:
                     continue
         return JsonResponse({'results': results[:100]})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def load_directory_context(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden({'error': 'Unauthorized'}, status=401)
+
+    try:
+        data = json.loads(request.body)
+        dir_path = data.get('path', '').strip()
+        if not dir_path:
+            return JsonResponse({'error': 'No path specified'}, status=400)
+
+        full_path = os.path.join(PROJECT_ROOT, dir_path)
+        if not os.path.isdir(full_path):
+            return JsonResponse({'error': 'Directory not found'}, status=404)
+
+        if not full_path.startswith(str(PROJECT_ROOT)):
+            return JsonResponse({'error': 'Invalid path'}, status=400)
+
+        max_files = int(data.get('max_files', 50))
+        max_total_size_mb = int(data.get('max_total_size_mb', 10))
+
+        files = []
+        total_size = 0
+
+        for root, dirs, filenames in os.walk(full_path):
+            dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith('.')]
+
+            for filename in sorted(filenames):
+                if len(files) >= max_files:
+                    break
+
+                _, ext = os.path.splitext(filename)
+                if ext.lower() in SKIP_EXTS:
+                    continue
+
+                file_full_path = os.path.join(root, filename)
+                try:
+                    file_size = os.path.getsize(file_full_path)
+                    if total_size + file_size > max_total_size_mb * 1024 * 1024:
+                        continue
+
+                    if is_binary_file(file_full_path):
+                        continue
+
+                    with open(file_full_path, 'r', encoding='utf-8', errors='replace') as f:
+                        content = f.read()
+
+                    if not content.strip():
+                        continue
+
+                    rel_path = os.path.relpath(file_full_path, PROJECT_ROOT)
+                    files.append({
+                        'path': rel_path,
+                        'content': content,
+                        'size': file_size,
+                        'lines': len(content.split('\n'))
+                    })
+                    total_size += file_size
+
+                except Exception:
+                    continue
+
+        return JsonResponse({
+            'success': True,
+            'directory': dir_path,
+            'file_count': len(files),
+            'total_size_bytes': total_size,
+            'files': files
+        })
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
