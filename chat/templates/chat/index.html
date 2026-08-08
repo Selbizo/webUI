@@ -2225,6 +2225,258 @@
         document.getElementById('load-dir-btn').addEventListener('click', showLoadDirModal);
 
         checkStatus();
+
+// ========== Vector DB / RAG Panel ==========
+const vectorDbPanel = document.getElementById('vector-db-panel');
+const toggleVectorDbBtn = document.getElementById('toggle-vector-db-btn');
+const vectorDbList = document.getElementById('vector-db-list');
+const createDbBtn = document.getElementById('create-db-btn');
+const vectorDbActions = document.getElementById('vector-db-actions');
+const uploadFileBtn = document.getElementById('upload-file-btn');
+const indexBtn = document.getElementById('index-btn');
+const vectorDbInfo = document.getElementById('vector-db-info');
+const ragStatus = document.getElementById('rag-status');
+const fileInput = document.getElementById('file-input');
+
+let currentDbName = null;
+let activeDbName = null;
+
+// Toggle panel
+if (toggleVectorDbBtn && vectorDbPanel) {
+    toggleVectorDbBtn.addEventListener('click', () => {
+        vectorDbPanel.classList.toggle('visible');
+    });
+}
+
+async function loadVectorDatabases() {
+    try {
+        const response = await fetch('/api/vector-db/list/');
+        const data = await response.json();
+        
+        vectorDbList.innerHTML = '';
+        
+        if (!data.databases || data.databases.length === 0) {
+            vectorDbList.innerHTML = '<div style="font-size:0.78rem;color:var(--text-secondary);padding:8px;">Нет баз данных</div>';
+            vectorDbActions.style.display = 'none';
+            vectorDbInfo.style.display = 'none';
+            return;
+        }
+        
+        data.databases.forEach(db => {
+            const item = document.createElement('div');
+            item.className = 'vector-db-item';
+            if (db.name === currentDbName) item.classList.add('active');
+            
+            const statusClass = db.index_ready ? 'ready' : 'pending';
+            const statusText = db.index_ready ? 'Готов' : 'Нет индекса';
+            
+            item.innerHTML = `
+                <span class="db-name">${db.name}</span>
+                <span class="db-status ${statusClass}">${statusText}</span>
+            `;
+            
+            item.addEventListener('click', () => selectDatabase(db.name));
+            vectorDbList.appendChild(item);
+        });
+    } catch (error) {
+        console.error('Ошибка загрузки БД:', error);
+    }
+}
+
+async function selectDatabase(name) {
+    currentDbName = name;
+    loadVectorDatabases();
+    
+    try {
+        const response = await fetch('/api/vector-db/info/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name: name})
+        });
+        const data = await response.json();
+        
+        if (data.info) {
+            const info = data.info;
+            vectorDbInfo.style.display = 'block';
+            vectorDbActions.style.display = 'flex';
+            vectorDbInfo.innerHTML = `
+                <div><strong>${info.name}</strong></div>
+                <div>Создана: ${new Date(info.created_at).toLocaleDateString('ru-RU')}</div>
+                <div>Документов: ${info.documents.length}</div>
+                <div>Чанков: ${info.total_chunks || 0}</div>
+                <div>Размерность: ${info.embedding_dimensions || 0}</div>
+            `;
+        }
+    } catch (error) {
+        console.error('Ошибка получения информации:', error);
+    }
+}
+
+if (createDbBtn) {
+    createDbBtn.addEventListener('click', async () => {
+        const name = prompt('Введите имя базы данных (только буквы, цифры, _ и -):');
+        if (!name || !/^[a-zA-Z0-9_\-]+$/.test(name)) {
+            alert('Недопустимое имя. Используйте только буквы, цифры, _ и -');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/vector-db/create/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name})
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                await loadVectorDatabases();
+                selectDatabase(name);
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        } catch (error) {
+            alert('Ошибка создания: ' + error.message);
+        }
+    });
+}
+
+if (uploadFileBtn) {
+    uploadFileBtn.addEventListener('click', () => {
+        if (fileInput) fileInput.click();
+    });
+}
+
+if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+        if (!currentDbName || !e.target.files || e.target.files.length === 0) return;
+        
+        for (const file of e.target.files) {
+            const formData = new FormData();
+            formData.append('db_name', currentDbName);
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/vector-db/upload-file/', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    await loadVectorDatabases();
+                    selectDatabase(currentDbName);
+                } else {
+                    alert('Ошибка загрузки: ' + data.error);
+                }
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+        fileInput.value = '';
+    });
+}
+
+if (indexBtn) {
+    indexBtn.addEventListener('click', async () => {
+        if (!currentDbName) return;
+        
+        indexBtn.disabled = true;
+        indexBtn.textContent = '⏳ Индексация...';
+        
+        try {
+            const response = await fetch('/api/vector-db/index/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: currentDbName})
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(`Индекс построен!\nФайлов: ${data.files_indexed}\nЧанков: ${data.total_chunks}`);
+                await loadVectorDatabases();
+                selectDatabase(currentDbName);
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        } catch (error) {
+            alert('Ошибка индексации: ' + error.message);
+        } finally {
+            indexBtn.disabled = false;
+            indexBtn.textContent = '🔬';
+        }
+    });
+}
+
+async function activateRagDb(name) {
+    activeDbName = name;
+    ragStatus.style.display = 'block';
+    ragStatus.className = 'rag-status visible rag-activated';
+    ragStatus.textContent = `🧠 RAG активен: ${name}`;
+    localStorage.setItem('activeRagDb', name);
+}
+
+function deactivateRagDb() {
+    activeDbName = null;
+    ragStatus.style.display = 'block';
+    ragStatus.className = 'rag-status visible rag-inactive';
+    ragStatus.textContent = '🧠 RAG деактивирован';
+    localStorage.removeItem('activeRagDb');
+}
+
+// Check if RAG is activated from URL params
+if (currentDbName) {
+    activateRagDb(currentDbName);
+}
+
+const savedRagDb = localStorage.getItem('activeRagDb');
+if (savedRagDb) {
+    setTimeout(() => activateRagDb(savedRagDb), 1000);
+}
+
+// Override sendMessage to include RAG context
+const originalSendMessage = window.sendMessage;
+window.sendMessage = async function() {
+    let query = messageInput.value.trim();
+    if (!query) return;
+    
+    let ragContext = '';
+    if (activeDbName && query) {
+        try {
+            const response = await fetch('/api/vector-db/search/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name: activeDbName,
+                    query: query,
+                    top_k: 5
+                })
+            });
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                ragContext = '\n\n=== КОНТЕКСТ ИЗ ВЕКТОРНОЙ БАЗЫ ===\n';
+                data.results.forEach((result, i) => {
+                    const source = result.metadata?.file_name || 'Неизвестно';
+                    ragContext += `[${i+1}. Источник: ${source},相似度: ${result.score.toFixed(3)}]\n${result.chunk}\n\n`;
+                });
+                ragContext += '=== КОНЕЦ КОНТЕКСТА ===\n';
+            }
+        } catch (error) {
+            console.error('RAG search error:', error);
+        }
+    }
+    
+    if (ragContext) {
+        messageInput.value = query + ragContext;
+    }
+    
+    if (originalSendMessage) {
+        await originalSendMessage();
+    }
+};
+
+// Init
+loadVectorDatabases();
         initWorkspaceInfo();
     </script>
 </body>
