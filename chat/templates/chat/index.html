@@ -1950,7 +1950,9 @@
             loadDirError.style.display = 'none';
             loadDirSuccess.style.display = 'none';
             loadDirProgress.style.display = 'none';
-            loadDirPath.value = '';
+            const workspaceInfo = document.getElementById('workspace-info');
+            const defaultPath = workspaceInfo ? workspaceInfo.textContent.replace('📁 ', '').trim() : '';
+            loadDirPath.value = defaultPath;
         }
 
         function hideLoadDirModal() {
