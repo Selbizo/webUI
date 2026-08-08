@@ -25,4 +25,15 @@ urlpatterns = [
     path('api/diff/', views.diff_api, name='diff_api'),
     path('api/workspace/set/', views.set_workspace_api, name='set_workspace_api'),
     path('api/workspace/get/', views.get_workspace_api, name='get_workspace_api'),
+
+    # RAG / Vector DB
+    path('api/vector-db/list/', views.vector_db_list, name='vector_db_list'),
+    path('api/vector-db/create/', views.vector_db_create, name='vector_db_create'),
+    path('api/vector-db/delete/', views.vector_db_delete, name='vector_db_delete'),
+    path('api/vector-db/info/', views.vector_db_info, name='vector_db_info'),
+    path('api/vector-db/files/', views.vector_db_files, name='vector_db_files'),
+    path('api/vector-db/upload-file/', views.vector_db_upload_file, name='vector_db_upload_file'),
+    path('api/vector-db/index/', views.vector_db_index, name='vector_db_index'),
+    path('api/vector-db/rebuild-index/', views.vector_db_rebuild_index, name='vector_db_rebuild_index'),
+    path('api/vector-db/search/', views.vector_db_search, name='vector_db_search'),
 ]

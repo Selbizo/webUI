@@ -3,9 +3,11 @@ import re
 import json
 import uuid
 import mimetypes
+import logging
 from pathlib import Path
 from openai import OpenAI
 from django.conf import settings as django_settings
+from django.contrib.auth.decorators import login_required
 
 BASE_DIR = Path(django_settings.BASE_DIR)
 CONFIG_FILE = BASE_DIR / 'workspace_config.json'
@@ -832,4 +834,303 @@ def diff_api(request):
             'colorized': colorized
         })
     except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+# =====================================================================
+# RAG / Vector Database API
+# =====================================================================
+
+from .services.rag_service import RagService
+
+# Ленивая инициализация (чтобы не ломать Django без LM Studio)
+_rag_service = None
+
+def _get_rag_service():
+    global _rag_service
+    if _rag_service is None:
+        try:
+            _rag_service = RagService()
+        except Exception:
+            pass
+    return _rag_service
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+@login_required
+def vector_db_list(request):
+    """Возвращает список всех векторных баз данных"""
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен (проверьте LM Studio)'}, status=503)
+
+    try:
+        databases = rag.get_ready_databases()
+        return JsonResponse({'databases': databases})
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_list error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def vector_db_create(request):
+    """Создаёт новую векторную базу данных"""
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        body = json.loads(request.body)
+        db_name = body.get('name', '').strip()
+
+        if not db_name:
+            return JsonResponse({'error': 'Укажите имя базы данных'}, status=400)
+
+        # Проверка на недопустимые символы
+        if not re.match(r'^[a-zA-Z0-9_\-]+$', db_name):
+            return JsonResponse({'error': 'Имя может содержать только буквы, цифры, _ и -'}, status=400)
+
+        rag.vector_db_service.create_db(db_name)
+        return JsonResponse({'success': True, 'name': db_name})
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_create error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def vector_db_delete(request):
+    """Удаляет векторную базу данных"""
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        body = json.loads(request.body)
+        db_name = body.get('name', '').strip()
+
+        if not db_name:
+            return JsonResponse({'error': 'Укажите имя базы данных'}, status=400)
+
+        rag.vector_db_service.delete_db(db_name)
+        return JsonResponse({'success': True})
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_delete error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def vector_db_info(request):
+    """Возвращает информацию о векторной базе"""
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        body = json.loads(request.body)
+        db_name = body.get('name', '').strip()
+
+        if not db_name:
+            return JsonResponse({'error': 'Укажите имя базы данных'}, status=400)
+
+        info = rag.vector_db_service.get_db_info(db_name)
+        return JsonResponse({'info': info})
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_info error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+@login_required
+def vector_db_files(request):
+    """Возвращает список файлов для индексации"""
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        db_name = request.GET.get('name', '').strip()
+
+        if not db_name:
+            return JsonResponse({'error': 'Укажите имя базы данных'}, status=400)
+
+        files = rag.vector_db_service.list_files_for_indexing(db_name)
+        return JsonResponse({'files': files})
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_files error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def vector_db_upload_file(request):
+    """
+    Загружает файл в директорию Files векторной базы.
+    Файл можно отправить через FormData или бинарные данные.
+    """
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        db_name = request.POST.get('db_name', '').strip()
+        file = request.FILES.get('file')
+
+        if not db_name or not file:
+            return JsonResponse({'error': 'Укажите базу данных и файл'}, status=400)
+
+        # Проверка расширения
+        supported = rag.document_parser.get_supported_extensions()
+        ext = Path(file.name).suffix.lower()
+        if ext not in supported:
+            return JsonResponse({
+                'error': f'Неподдерживаемый формат: {ext}. Поддерживаются: {", ".join(supported)}'
+            }, status=400)
+
+        # Сохраняем файл в Files/
+        db_path = rag.vector_db_service.get_db_path(db_name)
+        files_dir = db_path / 'Files'
+        files_dir.mkdir(parents=True, exist_ok=True)
+
+        file_path = files_dir / file.name
+
+        # Если файл с таким именем уже есть, добавляем префикс
+        if file_path.exists():
+            file_path = files_dir / f"{uuid.uuid4().hex[:8]}_{file.name}"
+
+        # Записываем файл
+        with open(file_path, 'wb') as f:
+            for chunk in file.chunks():
+                f.write(chunk)
+
+        # Добавляем в метаданные
+        relative_path = str(file_path.relative_to(db_path))
+        doc = rag.vector_db_service.add_document(db_name, str(file_path), relative_path)
+
+        return JsonResponse({
+            'success': True,
+            'file_path': relative_path,
+            'doc': doc
+        })
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_upload_file error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def vector_db_index(request):
+    """
+    Индексирует файлы в векторной базе.
+    Можно указать конкретные файлы или индексирует все.
+    """
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        body = json.loads(request.body)
+        db_name = body.get('name', '').strip()
+        file_paths = body.get('file_paths', [])
+
+        if not db_name:
+            return JsonResponse({'error': 'Укажите имя базы данных'}, status=400)
+
+        if file_paths:
+            # Индексируем только указанные файлы
+            for fp in file_paths:
+                full_path = rag.vector_db_service.get_db_path(db_name) / 'Files' / fp
+                if not full_path.exists():
+                    return JsonResponse({'error': f'Файл не найден: {fp}'}, status=400)
+                result = rag.index_file(db_name, str(full_path))
+                if result['status'] == 'error':
+                    return JsonResponse({'error': f"Ошибка: {result.get('error')}"}, status=400)
+
+            return JsonResponse({'success': True, 'message': f'Индексировано {len(file_paths)} файлов'})
+        else:
+            # Индексируем все файлы
+            result = rag.build_index(db_name)
+            return JsonResponse({'success': True, **result})
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_index error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def vector_db_rebuild_index(request):
+    """Полная перестройка индекса"""
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        body = json.loads(request.body)
+        db_name = body.get('name', '').strip()
+
+        if not db_name:
+            return JsonResponse({'error': 'Укажите имя базы данных'}, status=400)
+
+        result = rag.rebuild_index(db_name)
+        return JsonResponse({'success': True, **result})
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_rebuild_index error: {e}", exc_info=True)
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def vector_db_search(request):
+    """
+    Поиск в векторной базе.
+    Возвращает релевантные чанки.
+    """
+    rag = _get_rag_service()
+    if rag is None:
+        return JsonResponse({'error': 'RAG сервис не доступен'}, status=503)
+
+    try:
+        body = json.loads(request.body)
+        db_name = body.get('name', '').strip()
+        query = body.get('query', '').strip()
+        top_k = int(body.get('top_k', 5))
+
+        if not db_name or not query:
+            return JsonResponse({'error': 'Укажите базу данных и запрос'}, status=400)
+
+        if top_k < 1 or top_k > 100:
+            return JsonResponse({'error': 'top_k должен быть от 1 до 100'}, status=400)
+
+        results = rag.search(db_name, query, top_k=top_k)
+        return JsonResponse({'results': results})
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"vector_db_search error: {e}", exc_info=True)
         return JsonResponse({'error': str(e)}, status=500)

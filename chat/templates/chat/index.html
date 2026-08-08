@@ -784,6 +784,170 @@
             box-shadow: var(--shadow-modal);
             color: var(--text-primary);
         }
+
+        /* Vector DB Panel */
+        .vector-db-panel {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-primary);
+            padding: 16px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            display: none;
+        }
+        .vector-db-panel.visible {
+            display: block;
+        }
+        .vector-db-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        .vector-db-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            cursor: pointer;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-primary);
+        }
+        .vector-db-item:hover {
+            background: var(--bg-hover);
+        }
+        .vector-db-item.active {
+            background: var(--bg-active);
+            border-color: var(--border-active);
+        }
+        .vector-db-item .db-name {
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .vector-db-item .db-status {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+        .vector-db-item .db-status.ready {
+            background: #22c55e;
+            color: white;
+        }
+        .vector-db-item .db-status.pending {
+            background: #f59e0b;
+            color: white;
+        }
+        .create-db-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid var(--border-primary);
+        }
+        .create-db-btn:hover {
+            background: var(--bg-hover);
+        }
+        .db-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .db-actions button {
+            flex: 1;
+            min-width: 80px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .db-actions button:hover {
+            background: var(--bg-hover);
+        }
+        .db-actions button:disabled {
+            background: var(--bg-btn-disabled);
+            cursor: not-allowed;
+        }
+        .db-info {
+            margin-top: 12px;
+            padding: 10px;
+            background: var(--bg-message-system);
+            border-radius: 6px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+        .db-info div {
+            margin-bottom: 4px;
+        }
+        .file-upload-area {
+            margin-top: 12px;
+            padding: 12px;
+            border: 2px dashed var(--border-primary);
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .file-upload-area:hover {
+            border-color: var(--border-active);
+        }
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+        .rag-status {
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            display: none;
+        }
+        .rag-status.visible {
+            display: block;
+        }
+        .rag-activated {
+            background: var(--bg-success);
+            color: var(--text-diff-added);
+        }
+        .rag-inactive {
+            background: var(--bg-error);
+            color: var(--text-diff-removed);
+        }
+        .search-results {
+            margin-top: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .search-result-item {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+        .search-result-item .score {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+        }
     </style>
 </head>
 <body>
@@ -792,11 +956,24 @@
         <div class="user-info">
             <span id="status" class="status">Загрузка...</span>
             <button id="theme-toggle" class="theme-toggle" title="Переключить тему">🌙</button>
+            <button id="toggle-vector-db-btn" class="theme-toggle" title="Векторные базы (RAG)">🧠</button>
             <span class="username" id="username">Гость</span>
             <button id="logout-btn" class="logout-btn">Выйти</button>
         </div>
     </div>
     <div class="content-wrapper">
+        <div class="vector-db-panel" id="vector-db-panel">
+            <div class="vector-db-title">🧠 Векторные базы</div>
+            <button id="create-db-btn" class="create-db-btn">+ Создать базу</button>
+            <div id="vector-db-list"></div>
+            <div id="vector-db-actions" class="db-actions" style="display:none;">
+                <button id="upload-file-btn" title="Загрузить файлы">📁</button>
+                <button id="index-btn" title="Построить индекс">🔬</button>
+            </div>
+            <div id="vector-db-info" class="db-info" style="display:none;"></div>
+            <input type="file" id="file-input" multiple style="display:none;" accept=".txt,.md,.json,.csv,.docx,.pdf,.xlsx,.xls">
+            <div id="rag-status" class="rag-status"></div>
+        </div>
         <div class="sessions-panel" id="sessions-panel">
             <div class="sessions-title">Сессии</div>
             <button id="create-session-btn" class="create-session-btn">Новая сессия</button>
