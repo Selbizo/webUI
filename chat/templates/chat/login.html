@@ -5,6 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход - LM Studio Web UI</title>
     <style>
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-container: #ffffff;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --border-primary: #cccccc;
+            --border-focus: #6b6b6b;
+            --btn-bg: #6b6b6b;
+            --btn-hover: #525252;
+            --btn-disabled: #a0a0a0;
+            --error-bg: #ffebee;
+            --error-text: #c62828;
+            --shadow-login: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0d1117;
+            --bg-container: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --border-primary: #30363d;
+            --border-focus: #58a6ff;
+            --btn-bg: #21262d;
+            --btn-hover: #30363d;
+            --btn-disabled: #30363d;
+            --error-bg: #2d1013;
+            --error-text: #f85149;
+            --shadow-login: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,18 +42,19 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background 0.3s, color 0.3s;
         }
         .login-container {
-            background: #ffffff;
+            background: var(--bg-container);
             padding: 48px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-login);
             width: 100%;
             max-width: 400px;
         }
@@ -33,11 +64,11 @@
         }
         .login-header h1 {
             font-size: 1.5rem;
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 8px;
         }
         .login-header p {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
         .form-group {
@@ -47,54 +78,72 @@
             display: block;
             margin-bottom: 8px;
             font-size: 0.9rem;
-            color: #333;
+            color: var(--text-primary);
         }
         .form-group input {
             width: 100%;
             padding: 12px 16px;
             border-radius: 8px;
-            border: 1px solid #cccccc;
-            background: #ffffff;
-            color: #333;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-container);
+            color: var(--text-primary);
             font-size: 1rem;
         }
         .form-group input:focus {
             outline: none;
-            border-color: #6b6b6b;
+            border-color: var(--border-focus);
         }
         .submit-btn {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
             border: none;
-            background: #6b6b6b;
-            color: #fff;
+            background: var(--btn-bg);
+            color: var(--text-primary);
             font-size: 1rem;
             cursor: pointer;
             transition: background 0.2s;
         }
         .submit-btn:hover {
-            background: #525252;
+            background: var(--btn-hover);
         }
         .submit-btn:disabled {
-            background: #a0a0a0;
+            background: var(--btn-disabled);
             cursor: not-allowed;
         }
         .error-message {
             margin-top: 16px;
             padding: 12px;
             border-radius: 8px;
-            background: #ffebee;
-            color: #c62828;
+            background: var(--error-bg);
+            color: var(--error-text);
             font-size: 0.9rem;
             display: none;
         }
         .error-message.visible {
             display: block;
         }
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-container);
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .theme-toggle:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-focus);
+        }
     </style>
 </head>
 <body>
+    <button id="theme-toggle" class="theme-toggle" title="Переключить тему">🌙</button>
     <div class="login-container">
         <div class="login-header">
             <h1>LM Studio Web UI</h1>
@@ -114,6 +163,25 @@
         </form>
     </div>
     <script>
+        // Theme management
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+            themeToggleBtn.title = theme === 'dark' ? 'Светлая тема' : 'Темная тема';
+        }
+
         const loginForm = document.getElementById('login-form');
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');

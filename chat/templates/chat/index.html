@@ -6,6 +6,118 @@
     <title>LM Studio Web UI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <style>
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #e8e8e8;
+            --bg-tertiary: #ffffff;
+            --bg-header: #3d3d3d;
+            --bg-input: #ffffff;
+            --bg-message-user: #e0e0e0;
+            --bg-message-assistant: #ffffff;
+            --bg-message-system: #f0f0f0;
+            --bg-code: #3d3d3d;
+            --bg-code-header: #2d2d3d;
+            --bg-code-inline: #e8e8e8;
+            --bg-modal-overlay: rgba(0,0,0,0.5);
+            --bg-modal-content: #fff;
+            --bg-hover: #f5f5f5;
+            --bg-active: #d4d4d4;
+            --bg-line-hover: #f0f0f0;
+            --bg-file-viewer: #fff;
+            --bg-file-viewer-line: transparent;
+            --bg-terminal: #1e1e1e;
+            --bg-suggestion: #fff;
+            --bg-progress-bar: #22c55e;
+            --bg-progress-track: #e0e0e0;
+            --bg-diff-added: #e6ffec;
+            --bg-diff-removed: #ffebe9;
+            --bg-diff-hunk: #f0f0f0;
+            --bg-diff-number: transparent;
+            --bg-btn-secondary: #fff;
+            --bg-btn-apply: #10b981;
+            --bg-btn-apply-hover: #059669;
+            --bg-btn-disabled: #a0a0a0;
+            --bg-success: #d1fae5;
+            --bg-error: #fee2e2;
+            --bg-loading: #cccccc;
+            --bg-loader-track: #e0e0e0;
+
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-tertiary: #999;
+            --text-on-dark: #fff;
+            --text-on-dark-secondary: #aaa;
+            --text-code: #eee;
+            --text-link: #e74c3c;
+            --text-diff-added: #1a7f37;
+            --text-diff-removed: #cf222e;
+            --text-diff-hunk: #666;
+            --text-diff-header: #999;
+
+            --border-primary: #cccccc;
+            --border-secondary: #e0e0e0;
+            --border-tertiary: #ddd;
+            --border-active: #999999;
+
+            --shadow-modal: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-header: #010409;
+            --bg-input: #21262d;
+            --bg-message-user: #1c2333;
+            --bg-message-assistant: #161b22;
+            --bg-message-system: #1c2333;
+            --bg-code: #1a1e24;
+            --bg-code-header: #0d1117;
+            --bg-code-inline: #30363d;
+            --bg-modal-overlay: rgba(0,0,0,0.7);
+            --bg-modal-content: #161b22;
+            --bg-hover: #1c2333;
+            --bg-active: #30363d;
+            --bg-line-hover: #1c2333;
+            --bg-file-viewer: #0d1117;
+            --bg-file-viewer-line: transparent;
+            --bg-terminal: #0d1117;
+            --bg-suggestion: #161b22;
+            --bg-progress-bar: #238636;
+            --bg-progress-track: #30363d;
+            --bg-diff-added: #0d2818;
+            --bg-diff-removed: #2d1013;
+            --bg-diff-hunk: #161b22;
+            --bg-diff-number: transparent;
+            --bg-btn-secondary: #21262d;
+            --bg-btn-apply: #238636;
+            --bg-btn-apply-hover: #2ea043;
+            --bg-btn-disabled: #30363d;
+            --bg-success: #0d2818;
+            --bg-error: #2d1013;
+            --bg-loading: #30363d;
+            --bg-loader-track: #30363d;
+
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-tertiary: #484f58;
+            --text-on-dark: #fff;
+            --text-on-dark-secondary: #8b949e;
+            --text-code: #e6edf3;
+            --text-link: #f85149;
+            --text-diff-added: #3fb950;
+            --text-diff-removed: #f85149;
+            --text-diff-hunk: #8b949e;
+            --text-diff-header: #484f58;
+
+            --border-primary: #30363d;
+            --border-secondary: #30363d;
+            --border-tertiary: #21262d;
+            --border-active: #58a6ff;
+
+            --shadow-modal: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,23 +125,24 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background 0.3s, color 0.3s;
         }
         .header {
-            background: #3d3d3d;
+            background: var(--bg-header);
             padding: 16px 24px;
-            border-bottom: 1px solid #cccccc;
+            border-bottom: 1px solid var(--border-primary);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .header h1 {
             font-size: 1.2rem;
-            color: #333;
+            color: var(--text-primary);
         }
         .user-info {
             display: flex;
@@ -38,7 +151,7 @@
         }
         .username {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-secondary);
         }
         .status {
             font-size: 0.85rem;
@@ -50,18 +163,36 @@
         .status.error {
             background: #ef4444;
         }
+        .theme-toggle {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-active);
+        }
         .logout-btn {
             padding: 8px 16px;
             border-radius: 6px;
             border: none;
-            background: #6b6b6b;
-            color: #fff;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.2s;
+            border: 1px solid var(--border-primary);
         }
         .logout-btn:hover {
-            background: #525252;
+            background: var(--bg-hover);
         }
         .chat-container {
             flex: 1;
@@ -85,30 +216,31 @@
         }
         .message.user {
             align-self: flex-end;
-            background: #e0e0e0;
+            background: var(--bg-message-user);
             border-bottom-right-radius: 4px;
         }
         .message.assistant {
             align-self: flex-start;
-            background: #ffffff;
-            border: 1px solid #e0e0e0;
+            background: var(--bg-message-assistant);
+            border: 1px solid var(--border-secondary);
             border-bottom-left-radius: 4px;
         }
         .message.system {
             align-self: center;
-            background: #f0f0f0;
+            background: var(--bg-message-system);
             font-size: 0.85rem;
             opacity: 0.7;
         }
         .message.assistant code {
-            background: #e8e8e8;
+            background: var(--bg-code-inline);
             padding: 2px 6px;
             border-radius: 4px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.9em;
+            color: var(--text-primary);
         }
         .message.assistant pre {
-            background: #3d3d3d;
+            background: var(--bg-code);
             padding: 12px;
             border-radius: 8px;
             overflow-x: auto;
@@ -117,26 +249,26 @@
         .message.assistant pre code {
             background: transparent;
             padding: 0;
-            color: #eee;
+            color: var(--text-code);
         }
         .message.assistant h1, .message.assistant h2, .message.assistant h3 {
             margin: 12px 0 8px 0;
-            color: #333;
+            color: var(--text-primary);
         }
         .message.assistant strong {
-            color: #333;
+            color: var(--text-primary);
         }
         .message.assistant em {
-            color: #666;
+            color: var(--text-secondary);
         }
         .message.assistant li {
             margin: 4px 0;
             list-style-type: disc;
         }
         .input-area {
-            background: #e8e8e8;
+            background: var(--bg-secondary);
             padding: 24px;
-            border-top: 1px solid #cccccc;
+            border-top: 1px solid var(--border-primary);
             flex-shrink: 0;
         }
         .input-form {
@@ -148,9 +280,9 @@
         .model-select {
             padding: 12px 16px;
             border-radius: 8px;
-            border: 1px solid #cccccc;
-            background: #ffffff;
-            color: #333;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-input);
+            color: var(--text-primary);
             font-size: 0.9rem;
             min-width: 200px;
         }
@@ -158,9 +290,9 @@
             flex: 1;
             padding: 12px 16px;
             border-radius: 8px;
-            border: 1px solid #cccccc;
-            background: #ffffff;
-            color: #333;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-input);
+            color: var(--text-primary);
             font-size: 1rem;
             resize: none;
             min-height: 48px;
@@ -168,31 +300,32 @@
         }
         .message-input:focus {
             outline: none;
-            border-color: #6b6b6b;
+            border-color: var(--border-active);
         }
         .send-btn {
             padding: 12px 24px;
             border-radius: 8px;
             border: none;
-            background: #6b6b6b;
-            color: #fff;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             font-size: 1rem;
             cursor: pointer;
             transition: background 0.2s;
+            border: 1px solid var(--border-primary);
         }
         .send-btn:hover {
-            background: #525252;
+            background: var(--bg-hover);
         }
         .send-btn:disabled {
-            background: #a0a0a0;
+            background: var(--bg-btn-disabled);
             cursor: not-allowed;
         }
         .loading {
             display: none;
             padding: 8px 16px;
             border-radius: 8px;
-            background: #cccccc;
-            color: #666;
+            background: var(--bg-loading);
+            color: var(--text-secondary);
             font-size: 0.85rem;
             margin-top: 8px;
         }
@@ -201,8 +334,8 @@
         }
         .sessions-panel {
             width: 250px;
-            background: #e8e8e8;
-            border-right: 1px solid #cccccc;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-primary);
             padding: 16px;
             overflow-y: auto;
         }
@@ -210,18 +343,19 @@
             font-size: 0.9rem;
             font-weight: bold;
             margin-bottom: 12px;
-            color: #333;
+            color: var(--text-primary);
         }
         .session-item {
             padding: 8px 12px;
             margin-bottom: 8px;
             border-radius: 6px;
-            background: #ffffff;
-            border: 1px solid #cccccc;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
             cursor: pointer;
             font-size: 0.85rem;
             display: flex;
             align-items: center;
+            color: var(--text-primary);
         }
         .session-item .session-title {
             flex: 1;
@@ -242,11 +376,11 @@
             font-size: 0.75rem;
         }
         .session-item:hover {
-            background: #f5f5f5;
+            background: var(--bg-hover);
         }
         .session-item.active {
-            background: #d4d4d4;
-            border-color: #999999;
+            background: var(--bg-active);
+            border-color: var(--border-active);
         }
         .create-session-btn {
             width: 100%;
@@ -254,22 +388,23 @@
             margin-bottom: 16px;
             border-radius: 6px;
             border: none;
-            background: #808080;
-            color: #fff;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.2s;
+            border: 1px solid var(--border-primary);
         }
         .create-session-btn:hover {
-            background: #666666;
+            background: var(--bg-hover);
         }
         .delete-session-btn:hover {
             background: #dc2626;
         }
         .file-panel {
             width: 220px;
-            background: #e8e8e8;
-            border-right: 1px solid #cccccc;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-primary);
             padding: 16px;
             overflow-y: auto;
             flex-shrink: 0;
@@ -286,7 +421,7 @@
         .file-panel-title {
             font-size: 0.9rem;
             font-weight: bold;
-            color: #333;
+            color: var(--text-primary);
         }
         .file-tree {
             font-size: 0.82rem;
@@ -304,29 +439,30 @@
             overflow: hidden;
             text-overflow: ellipsis;
             gap: 4px;
+            color: var(--text-primary);
         }
         .file-tree-row:hover {
-            background: #f5f5f5;
+            background: var(--bg-hover);
         }
         .file-tree-row.open {
-            background: #f0f0f0;
+            background: var(--bg-active);
         }
         .file-tree-row.file {
             padding-left: 20px;
         }
         .file-tree-row.file:hover {
-            color: #6b6b6b;
+            color: var(--text-secondary);
         }
         .file-tree-row.active {
-            background: #d4d4d4;
-            color: #333;
+            background: var(--bg-active);
+            color: var(--text-primary);
         }
         .file-tree-arrow {
             width: 16px;
             text-align: center;
             font-size: 0.7rem;
             flex-shrink: 0;
-            color: #999;
+            color: var(--text-tertiary);
         }
         .file-tree-arrow.hidden {
             visibility: hidden;
@@ -356,8 +492,8 @@
             display: none;
             flex-direction: column;
             width: 400px;
-            border-right: 1px solid #cccccc;
-            background: #fff;
+            border-right: 1px solid var(--border-primary);
+            background: var(--bg-file-viewer);
             overflow: hidden;
             flex-shrink: 0;
         }
@@ -366,25 +502,25 @@
         }
         .file-viewer-header {
             padding: 8px 12px;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-tertiary);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 0.82rem;
             font-weight: bold;
-            color: #333;
+            color: var(--text-primary);
         }
         .file-viewer-close {
             background: none;
             border: none;
             font-size: 1.1rem;
             cursor: pointer;
-            color: #999;
+            color: var(--text-tertiary);
             padding: 0 4px;
         }
         .file-viewer-close:hover {
-            color: #333;
+            color: var(--text-primary);
         }
         .file-viewer-content {
             flex: 1;
@@ -393,50 +529,50 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.82rem;
             line-height: 1.5;
-            background: #fafafa;
+            background: var(--bg-primary);
         }
         .file-viewer-line {
             display: flex;
             white-space: pre;
         }
         .file-viewer-line:hover {
-            background: #f0f0f0;
+            background: var(--bg-line-hover);
         }
         .line-number {
             display: inline-block;
             width: 40px;
             text-align: right;
             padding-right: 12px;
-            color: #999;
+            color: var(--text-tertiary);
             user-select: none;
-            border-right: 1px solid #e0e0e0;
+            border-right: 1px solid var(--border-secondary);
             flex-shrink: 0;
         }
         .line-content {
             padding-left: 12px;
-            color: #333;
+            color: var(--text-primary);
         }
         .file-viewer-content code {
-            background: #3d3d3d;
-            color: #eee;
+            background: var(--bg-code);
+            color: var(--text-code);
             padding: 2px 6px;
             border-radius: 4px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.85em;
         }
         .file-viewer-content pre {
-            background: #3d3d3d;
+            background: var(--bg-code);
             padding: 12px;
             border-radius: 8px;
             overflow-x: auto;
             margin: 8px 0;
-            color: #eee;
+            color: var(--text-code);
         }
         .code-block {
             display: flex;
             flex-direction: column;
             margin: 8px 0;
-            background: #3d3d3d;
+            background: var(--bg-code);
             border-radius: 8px;
             overflow: hidden;
         }
@@ -445,21 +581,21 @@
             justify-content: space-between;
             align-items: center;
             padding: 6px 12px;
-            background: #2d2d2d;
-            color: #aaa;
+            background: var(--bg-code-header);
+            color: var(--text-on-dark-secondary);
             font-size: 0.75rem;
         }
         .code-block-copy {
             background: none;
             border: none;
-            color: #aaa;
+            color: var(--text-on-dark-secondary);
             cursor: pointer;
             font-size: 0.75rem;
             padding: 2px 8px;
             border-radius: 4px;
         }
         .code-block-copy:hover {
-            background: #444;
+            background: var(--bg-active);
         }
         .code-block-content {
             display: flex;
@@ -469,8 +605,8 @@
             display: none;
             flex-direction: column;
             width: 450px;
-            border-right: 1px solid #cccccc;
-            background: #fff;
+            border-right: 1px solid var(--border-primary);
+            background: var(--bg-file-viewer);
             overflow: hidden;
             flex-shrink: 0;
         }
@@ -479,14 +615,14 @@
         }
         .diff-viewer-header {
             padding: 8px 12px;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-tertiary);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 0.82rem;
             font-weight: bold;
-            color: #333;
+            color: var(--text-primary);
         }
         .diff-viewer-content {
             flex: 1;
@@ -495,7 +631,7 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.82rem;
             line-height: 1.5;
-            background: #fafafa;
+            background: var(--bg-primary);
         }
         .diff-line {
             display: flex;
@@ -503,69 +639,70 @@
             padding: 0 8px;
         }
         .diff-line:hover {
-            background: #f0f0f0;
+            background: var(--bg-line-hover);
         }
         .diff-line.added {
-            background: #e6ffec;
+            background: var(--bg-diff-added);
         }
-        .diff-line.added .diff-number { background: #d4ffd4; }
+        .diff-line.added .diff-number { background: var(--bg-diff-added); }
         .diff-line.removed {
-            background: #ffebe9;
+            background: var(--bg-diff-removed);
         }
-        .diff-line.removed .diff-number { background: #ffd4d4; }
+        .diff-line.removed .diff-number { background: var(--bg-diff-removed); }
         .diff-line.hunk {
-            background: #f0f0f0;
-            color: #666;
+            background: var(--bg-diff-hunk);
+            color: var(--text-diff-hunk);
         }
         .diff-line.header {
-            background: #f0f0f0;
-            color: #999;
+            background: var(--bg-diff-hunk);
+            color: var(--text-diff-header);
         }
         .diff-number {
             display: inline-block;
             width: 35px;
             text-align: right;
             padding-right: 8px;
-            color: #999;
+            color: var(--text-tertiary);
             user-select: none;
-            border-right: 1px solid #e0e0e0;
+            border-right: 1px solid var(--border-secondary);
             flex-shrink: 0;
         }
         .diff-content {
             padding-left: 8px;
         }
-        .diff-content.added-text { color: #1a7f37; }
-        .diff-content.removed-text { color: #cf222e; }
+        .diff-content.added-text { color: var(--text-diff-added); }
+        .diff-content.removed-text { color: var(--text-diff-removed); }
         .diff-actions {
             padding: 8px 12px;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid var(--border-tertiary);
             display: flex;
             gap: 8px;
             justify-content: flex-end;
-            background: #f5f5f5;
+            background: var(--bg-secondary);
         }
         .btn-apply {
             padding: 4px 12px;
             border-radius: 4px;
             border: none;
-            background: #22c55e;
+            background: var(--bg-btn-apply);
             color: #fff;
             cursor: pointer;
             font-size: 0.82rem;
         }
         .btn-apply:hover {
-            background: #16a34a;
+            background: var(--bg-btn-apply-hover);
         }
         .btn-reject {
             padding: 4px 12px;
             border-radius: 4px;
-            border: 1px solid #ccc;
-            background: #fff;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-btn-secondary);
             cursor: pointer;
             font-size: 0.82rem;
+            color: var(--text-primary);
         }
         .btn-reject:hover {
-            background: #eee;
+            background: var(--bg-hover);
         }
         .code-block-header {
             padding: 12px;
@@ -573,18 +710,18 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.82rem;
             line-height: 1.5;
-            color: #eee;
+            color: var(--text-code);
             white-space: pre;
         }
         .search-files {
             width: 100%;
             padding: 6px 8px;
             border-radius: 4px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-primary);
             font-size: 0.82rem;
             margin-bottom: 8px;
-            background: #fff;
-            color: #333;
+            background: var(--bg-input);
+            color: var(--text-primary);
             display: none;
         }
         .search-files.visible {
@@ -593,38 +730,38 @@
         .sidebar-toggle {
             padding: 8px 12px;
             border-radius: 6px;
-            border: none;
-            background: #6b6b6b;
-            color: #fff;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             font-size: 0.85rem;
             cursor: pointer;
         }
         .sidebar-toggle:hover {
-            background: #525252;
+            background: var(--bg-hover);
         }
         .btn-secondary {
             padding: 8px 16px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-primary);
             border-radius: 4px;
-            background: #fff;
+            background: var(--bg-btn-secondary);
             cursor: pointer;
             font-size: 0.85rem;
-            color: #333;
+            color: var(--text-primary);
         }
         .btn-secondary:hover {
-            background: #f5f5f5;
+            background: var(--bg-hover);
         }
         .btn-apply {
             padding: 8px 16px;
             border: none;
             border-radius: 4px;
-            background: #10b981;
+            background: var(--bg-btn-apply);
             color: #fff;
             cursor: pointer;
             font-size: 0.85rem;
         }
         .btn-apply:hover {
-            background: #059669;
+            background: var(--bg-btn-apply-hover);
         }
         .modal-overlay {
             position: fixed;
@@ -632,19 +769,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: var(--bg-modal-overlay);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
         }
         .modal-content {
-            background: #fff;
+            background: var(--bg-modal-content);
             border-radius: 12px;
             padding: 24px;
             min-width: 450px;
             max-width: 600px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: var(--shadow-modal);
+            color: var(--text-primary);
         }
     </style>
 </head>
@@ -652,8 +790,9 @@
     <div class="header">
         <h1>LM Studio Web UI</h1>
         <div class="user-info">
-            <span class="username" id="username">Гость</span>
             <span id="status" class="status">Загрузка...</span>
+            <button id="theme-toggle" class="theme-toggle" title="Переключить тему">🌙</button>
+            <span class="username" id="username">Гость</span>
             <button id="logout-btn" class="logout-btn">Выйти</button>
         </div>
     </div>
@@ -673,7 +812,7 @@
                     <button id="toggle-file-panel" class="sidebar-toggle" style="font-size:0.8rem;padding:2px 6px;margin-left:2px;" title="Закрыть">✕</button>
                 </div>
             </div>
-            <div id="workspace-info" style="font-size:0.75rem;color:#666;padding:4px 0;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title=""></div>
+            <div id="workspace-info" style="font-size:0.75rem;color:var(--text-secondary);padding:4px 0;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title=""></div>
             <input type="text" class="search-files" id="search-files" placeholder="Поиск файлов...">
             <div class="file-tree" id="file-tree"></div>
         </div>
@@ -704,11 +843,11 @@
                 <div class="loading" id="loading">Модель думает...</div>
             </div>
             <div class="input-area">
-                <div id="command-suggestion" style="display:none;max-width:900px;margin:0 auto 8px;padding:8px;background:#fff;border:1px solid #ccc;border-radius:8px;font-size:0.82rem;"></div>
-                <div id="terminal-output" style="display:none;max-width:900px;margin:0 auto 8px;padding:12px;background:#1e1e1e;color:#eee;border-radius:8px;font-family:'Courier New',monospace;font-size:0.82rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;"></div>
+                <div id="command-suggestion" style="display:none;max-width:900px;margin:0 auto 8px;padding:8px;background:var(--bg-suggestion);border:1px solid var(--border-primary);border-radius:8px;font-size:0.82rem;color:var(--text-primary);"></div>
+                <div id="terminal-output" style="display:none;max-width:900px;margin:0 auto 8px;padding:12px;background:var(--bg-terminal);color:var(--text-code);border-radius:8px;font-family:'Courier New',monospace;font-size:0.82rem;white-space:pre-wrap;max-height:200px;overflow-y:auto;"></div>
                 <form id="chat-form" class="input-form">
                     <select id="model-select" class="model-select">
-                        <option value="">Выберите модель...</option>
+                        <option value="" style="background:var(--bg-input);color:var(--text-primary);">Выберите модель...</option>
                     </select>
                     <textarea id="message-input" class="message-input" placeholder="Сообщение..." rows="1"></textarea>
                     <button type="submit" id="send-btn" class="send-btn">Отправить</button>
@@ -723,26 +862,26 @@
         <div class="modal-content">
             <h3 style="margin:0 0 16px 0;color:#333;font-size:1.1rem;">Загрузить директорию в контекст</h3>
             <div style="margin-bottom:12px;">
-                <label style="display:block;font-size:0.85rem;color:#555;margin-bottom:4px;">Путь к директории:</label>
-                <input type="text" id="load-dir-path" placeholder="Например: src/models" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:0.85rem;font-family:monospace;">
+                <label style="display:block;font-size:0.85rem;margin-bottom:4px;">Путь к директории:</label>
+                <input type="text" id="load-dir-path" placeholder="Например: src/models" style="width:100%;padding:8px;border:1px solid var(--border-primary);border-radius:4px;font-size:0.85rem;font-family:monospace;background:var(--bg-input);color:var(--text-primary);">
             </div>
             <div style="margin-bottom:12px;">
-                <label style="display:block;font-size:0.85rem;color:#555;margin-bottom:4px;">Макс. файлов: <span id="max-files-value">50</span></label>
+                <label style="display:block;font-size:0.85rem;margin-bottom:4px;">Макс. файлов: <span id="max-files-value">50</span></label>
                 <input type="range" id="load-dir-max-files" min="5" max="200" value="50" style="width:100%;" oninput="document.getElementById('max-files-value').textContent=this.value">
             </div>
             <div style="margin-bottom:16px;">
-                <label style="display:block;font-size:0.85rem;color:#555;margin-bottom:4px;">Макс. размер (МБ): <span id="max-size-value">10</span></label>
+                <label style="display:block;font-size:0.85rem;margin-bottom:4px;">Макс. размер (МБ): <span id="max-size-value">10</span></label>
                 <input type="range" id="load-dir-max-size" min="1" max="50" value="10" style="width:100%;" oninput="document.getElementById('max-size-value').textContent=this.value">
             </div>
-            <div id="load-dir-progress" style="display:none;margin-bottom:12px;padding:8px;background:#f0f0f0;border-radius:4px;font-size:0.82rem;">
+            <div id="load-dir-progress" style="display:none;margin-bottom:12px;padding:8px;background:var(--bg-message-system);border-radius:4px;font-size:0.82rem;">
                 <div style="margin-bottom:4px;">⏳ Загрузка...</div>
-                <div style="background:#e0e0e0;border-radius:4px;height:20px;overflow:hidden;">
-                    <div id="load-dir-progress-bar" style="background:#22c55e;height:100%;width:0%;transition:width 0.3s;"></div>
+                <div style="background:var(--bg-loader-track);border-radius:4px;height:20px;overflow:hidden;">
+                    <div id="load-dir-progress-bar" style="background:var(--bg-progress-bar);height:100%;width:0%;transition:width 0.3s;"></div>
                 </div>
-                <div id="load-dir-progress-text" style="margin-top:4px;color:#666;"></div>
+                <div id="load-dir-progress-text" style="margin-top:4px;color:var(--text-secondary);"></div>
             </div>
-            <div id="load-dir-error" style="display:none;padding:8px;background:#fee2e2;color:#dc2626;border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
-            <div id="load-dir-success" style="display:none;padding:8px;background:#d1fae5;color:#059669;border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
+            <div id="load-dir-error" style="display:none;padding:8px;background:var(--bg-error);color:var(--text-diff-removed);border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
+            <div id="load-dir-success" style="display:none;padding:8px;background:var(--bg-success);color:var(--text-diff-added);border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
             <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button id="load-dir-cancel-btn" class="btn-secondary">Отмена</button>
                 <button id="load-dir-load-btn" class="btn-apply">Загрузить</button>
@@ -753,21 +892,21 @@
     <!-- Workspace Selection Modal -->
     <div id="workspace-modal" class="modal-overlay" style="display:none;">
         <div class="modal-content">
-            <h3 style="margin:0 0 16px 0;color:#333;font-size:1.1rem;">Выбрать рабочую папку</h3>
+            <h3 style="margin:0 0 16px 0;font-size:1.1rem;">Выбрать рабочую папку</h3>
             <div style="margin-bottom:12px;">
-                <label style="display:block;font-size:0.85rem;color:#555;margin-bottom:4px;">Текущая папка:</label>
-                <div id="current-workspace-path" style="padding:8px;background:#f5f5f5;border-radius:4px;font-size:0.82rem;font-family:monospace;word-break:break-all;max-height:60px;overflow-y:auto;"></div>
+                <label style="display:block;font-size:0.85rem;margin-bottom:4px;">Текущая папка:</label>
+                <div id="current-workspace-path" style="padding:8px;background:var(--bg-secondary);border-radius:4px;font-size:0.82rem;font-family:monospace;word-break:break-all;max-height:60px;overflow-y:auto;"></div>
             </div>
             <div style="margin-bottom:16px;">
-                <label style="display:block;font-size:0.85rem;color:#555;margin-bottom:4px;">Новая папка:</label>
+                <label style="display:block;font-size:0.85rem;margin-bottom:4px;">Новая папка:</label>
                 <div style="display:flex;gap:8px;">
-                    <input type="text" id="workspace-path-input" placeholder="Введите путь к папке или выберите..." style="flex:1;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:0.85rem;font-family:monospace;">
+                    <input type="text" id="workspace-path-input" placeholder="Введите путь к папке или выберите..." style="flex:1;padding:8px;border:1px solid var(--border-primary);border-radius:4px;font-size:0.85rem;font-family:monospace;background:var(--bg-input);color:var(--text-primary);">
                     <input type="file" id="workspace-folder-input" webkitdirectory="" directory="" multiple style="display:none;">
-                    <button id="browse-folder-btn" class="btn-secondary" style="padding:8px 16px;border:1px solid #ccc;border-radius:4px;background:#fff;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Обзор</button>
+                    <button id="browse-folder-btn" class="btn-secondary" style="padding:8px 16px;border:1px solid var(--border-primary);border-radius:4px;cursor:pointer;font-size:0.85rem;white-space:nowrap;">Обзор</button>
                 </div>
             </div>
-            <div id="workspace-error" style="display:none;padding:8px;background:#fee2e2;color:#dc2626;border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
-            <div id="workspace-success" style="display:none;padding:8px;background:#d1fae5;color:#059669;border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
+            <div id="workspace-error" style="display:none;padding:8px;background:var(--bg-error);color:var(--text-diff-removed);border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
+            <div id="workspace-success" style="display:none;padding:8px;background:var(--bg-success);color:var(--text-diff-added);border-radius:4px;font-size:0.82rem;margin-bottom:12px;"></div>
             <div style="display:flex;justify-content:flex-end;gap:8px;">
                 <button id="workspace-cancel-btn" class="btn-secondary">Отмена</button>
                 <button id="workspace-apply-btn" class="btn-apply">Применить</button>
@@ -961,6 +1100,25 @@
         let currentFilePanelOpen = true;
         let selectedFilesForContext = [];
         let contextBadgeEl = null;
+
+        // Theme management
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeToggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+            themeToggleBtn.title = theme === 'dark' ? 'Светлая тема' : 'Темная тема';
+        }
 
         function getFileIcon(name) {
             if (name.endsWith('.py')) return '🐍';
